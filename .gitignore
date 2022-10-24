@@ -1,5 +1,6 @@
-# ignore project configurations for JetBrains
+# ignore project configurations
 /.idea/
+/.vscode/
 /confs/
 
 # Byte-compiled / optimized / DLL files
