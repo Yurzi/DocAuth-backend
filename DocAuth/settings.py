@@ -26,8 +26,10 @@ SECRET_KEY = "django-insecure-gp-&h)w(21)$%1z=sc1765#o@bz7aut1n#=*iuv=f0uw6j*uff
 DEBUG = True
 
 # 允许访问的主机ip，可以用通配符*
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
+# 跨域设置,允许所有的域名访问
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 
@@ -41,10 +43,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "App.apps.TheAppConfig",
+    "corsheaders",
 ]
 
 # 中间件 ,需要加载的中间件。比如在请求前和响应后根据规则去执行某些代码的方法
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -144,3 +149,4 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ]
 }
+

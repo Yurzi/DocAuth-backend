@@ -1,5 +1,6 @@
-Django
-django-filter
-djangorestframework
-Markdown
-mysqlclient
+Django==4.1.3
+django-cors-headers==3.13.0
+django-filter==22.1
+djangorestframework==3.14.0
+Markdown==3.4.1
+mysqlclient==2.1.1
