@@ -10,7 +10,7 @@ pip install -r requirements.txt
 
 ### 配置数据库
 
-打开 `confs/my.conf` 文件，修改其中的配置项以符合你的数据库配置
+打开 `confs/my.conf` 文件，修改其中的配置项以符合你的数据库配置。如果没有请自己创建my.cnf文件
 
 ```conf
 [client]
