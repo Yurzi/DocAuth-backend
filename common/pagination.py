@@ -1,5 +1,5 @@
 from rest_framework.pagination import PageNumberPagination
-from common.custrom_response import CommonResponse
+from common.custom_response import CustomResponse
 
 class StandardResultsSetPagination(PageNumberPagination):
     '''
@@ -16,7 +16,7 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 30
 
     def get_paginated_response(self, data):
-        return CommonResponse(data={
+        return CustomResponse(data={
             'links': {
                 'next': self.get_next_link(),
                 'previous': self.get_previous_link()
