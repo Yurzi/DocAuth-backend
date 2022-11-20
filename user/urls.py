@@ -3,5 +3,5 @@ from user import views
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.userList, name='index'),
 ]
