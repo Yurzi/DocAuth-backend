@@ -42,8 +42,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "user.apps.UserConfig",
+    'rest_framework_simplejwt',
     "corsheaders",
+    "user.apps.UserConfig",
 ]
 
 # 中间件 ,需要加载的中间件。比如在请求前和响应后根据规则去执行某些代码的方法
@@ -123,13 +124,15 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = "zh-hans"
 # 时区设置，中国的是：Asia/Shanghai
 TIME_ZONE = "Asia/Shanghai"
+USE_L10N = True
 # i18n字符集是否支持
 USE_I18N = True
 # 是否使用timezone
 # 保证存储到数据库中的是 UTC 时间；
 # 在函数之间传递时间参数时，确保时间已经转换成 UTC 时间；
-USE_TZ = True
+# USE_TZ = True
 
+APPEND_SLASH=False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -143,10 +146,16 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Rest framework settings
 REST_FRAMEWORK = {
+    'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',
+    'DEFAULT_PAGINATION_CLASS':'common.pagination.StandardResultsSetPagination',
+    "EXCEPTION_HANDLER": "common.custom_exception.custom_exception_handler",
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny"
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ]
 }
 

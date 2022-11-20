@@ -1,20 +1,19 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework import viewsets, status
+from common.custom_exception import CustomException
+from common.custrom_response import decorateRes
 from .models import User
-from .serializers import UserListSerializer
+from .serializers import UserSerializer
 
 
-@api_view(['GET', 'POST'])
-def userList(request):
-    if request.method == 'GET':
-        users = User.objects.all()
-        serializer = UserListSerializer(users, many=True)
-        return Response(serializer.data)
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    # authentication_classes = (authentication.TokenAuthentication,)
+    # permission_classes = [permissions.IsAuthenticated]
 
-    elif request.method == 'POST':
-        serializer = UserListSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def create(self, request, *args, **kwargs):
+        return decorateRes(super().create(request, *args, **kwargs))
