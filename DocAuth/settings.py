@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "App.apps.TheAppConfig",
+    "user.apps.UserConfig",
     "corsheaders",
 ]
 
@@ -120,9 +120,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 # 语言设置 默认英语， 中文是zh-hans
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "zh-hans"
 # 时区设置，中国的是：Asia/Shanghai
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Shanghai"
 # i18n字符集是否支持
 USE_I18N = True
 # 是否使用timezone
