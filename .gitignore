@@ -2,6 +2,7 @@
 /.idea/
 /.vscode/
 /confs/my.cnf
+migrations
 
 # Byte-compiled / optimized / DLL files
 **/__pycache__/

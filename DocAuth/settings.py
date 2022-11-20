@@ -13,8 +13,10 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+import os,sys,datetime
 
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -44,7 +46,7 @@ INSTALLED_APPS = [
     "rest_framework",
     'rest_framework_simplejwt',
     "corsheaders",
-    "user.apps.UserConfig",
+    "apps.rbac",
 ]
 
 # 中间件 ,需要加载的中间件。比如在请求前和响应后根据规则去执行某些代码的方法
@@ -130,7 +132,7 @@ USE_I18N = True
 # 是否使用timezone
 # 保证存储到数据库中的是 UTC 时间；
 # 在函数之间传递时间参数时，确保时间已经转换成 UTC 时间；
-# USE_TZ = True
+USE_TZ = False
 
 APPEND_SLASH=False
 

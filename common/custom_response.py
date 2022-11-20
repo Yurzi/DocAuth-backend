@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.serializers import Serializer
 
 
-class CommonResponse(Response):
+class CustomResponse(Response):
     """ An HttpResponse that allows its data to be rendered into arbitrary media types. """
     
     # 注意这里的初始化参数，我新增了一个paginator参数，就是分页器的实例     
