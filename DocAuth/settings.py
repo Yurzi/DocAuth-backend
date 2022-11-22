@@ -18,6 +18,7 @@ import os,sys,datetime
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -34,6 +35,9 @@ ALLOWED_HOSTS = ["*"]
 CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
+
+#重载系统的用户，让UserProfile生效
+AUTH_USER_MODEL = 'rbac.User'
 
 # 用来注册App 前6个是django自带的应用
 INSTALLED_APPS = [

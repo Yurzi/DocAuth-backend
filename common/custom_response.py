@@ -28,7 +28,7 @@ class CustomResponse(Response):
                          "next": paginator.get_next_link(),
                          "previous": paginator.get_previous_link(),
                          "data": data,
-                         "msg": msg,
+                         "message": msg,
                          "code": code
                          }
             self.template_name = template_name
@@ -39,5 +39,5 @@ class CustomResponse(Response):
                 self[name] = value
 
 def decorateRes(res:Response,code=200, msg=None):
-    res.data = {"code": code, "msg": msg, "data": res.data}
+    res.data = {"code": code, "message": msg, "data": res.data}
     return res
