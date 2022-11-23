@@ -17,7 +17,7 @@ class UserListSerializer(serializers.ModelSerializer):
         depth = 1
 
 
-class UserModifySerializer(serializers.ModelSerializer):
+class UserDetailSerializer(serializers.ModelSerializer):
     '''
     创建、修改用户序列化
     '''

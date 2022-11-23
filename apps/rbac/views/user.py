@@ -1,50 +1,30 @@
 from ..models import User
-from django.contrib.auth.hashers import check_password
-from ..serializers.user_serializer import UserListSerializer,  UserModifySerializer
-from rest_framework.generics import ListAPIView
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.decorators import action
-from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.filters import SearchFilter, OrderingFilter
+from ..serializers.user_serializer import UserListSerializer,  UserDetailSerializer
+from rest_framework.generics import ListAPIView,RetrieveUpdateDestroyAPIView,CreateAPIView
+from rest_framework.decorators import api_view
+from rest_framework import decorators,permissions
 from common.custom_response import CustomResponse
 from common.custom_exception import CustomException
-from rest_framework import status
-from ..utils import *
+from rest_framework import status,request
+from ..utils import createMD5
 
-class UserViewSet(ModelViewSet):
+class UserDetailView(RetrieveUpdateDestroyAPIView):
     '''
-    用户管理：增删改查
+    用户管理：删改查
     '''
     queryset = User.objects.all()
-    # filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
-    # filter_fields = ('is_active',)
     search_fields = ('username', 'name', 'phone')
     ordering_fields = ('id',)
-    # authentication_classes = (JSONWebTokenAuthentication,)
-    # permission_classes = (RbacPermission,)
-
-    def get_serializer_class(self):
-        # 根据请求类型动态变更serializer
-        if self.action == 'list' or self.action == 'retrieve':
-            return UserListSerializer
-        return UserModifySerializer
-
-    def create(self, request, *args, **kwargs):
-        request.POST._mutable = True
-        # 给密码加盐
-        salt = createSalt()
-        request.data['password'] = createMD5(request.data['password'], salt)
-        request.POST._mutable = False
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return CustomResponse(data=None, status=status.HTTP_201_CREATED, headers=headers,msg="注册成功")
+    serializer_class = UserDetailSerializer
 
     def destroy(self, request, *args, **kwargs):
-        # 删除用户时删除其他表关联的用户
-        instance = self.get_object()
+        pk = kwargs.get('pk')
+        #先获取要修改的对象
+        try:
+            instance = self.queryset.get(pk=pk)
+        except:
+            #当输入不存在的pk
+            raise CustomException(message='用户不存在')
         self.perform_destroy(instance)
         return CustomResponse(status=status.HTTP_204_NO_CONTENT)
 
@@ -64,13 +44,49 @@ class UserViewSet(ModelViewSet):
         return CustomResponse(data=None, status=status.HTTP_201_CREATED, msg="修改用户信息成功")
 
 
+class UserRegisterView(CreateAPIView):
+    '''
+    用户注册
+    '''
+    queryset = User.objects.all()
+    serializer_class = UserDetailSerializer
+
+    def create(self, request, *args, **kwargs):
+        request.POST._mutable = True
+        # 给密码加盐
+        request.data['password'] = createMD5(request.data['password'])
+        request.POST._mutable = False
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        # user = serializer.data
+        # refresh = RefreshToken.for_user(user)
+        # res = {
+        #     "refresh": str(refresh),
+        #     "access": str(refresh.access_token),
+        # }
+        headers = self.get_success_headers(serializer.data)
+        return CustomResponse(data=None, status=status.HTTP_201_CREATED, headers=headers,msg="注册成功")
 
 
 class UserListView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
-    # filter_backends = (DjangoFilterBackend, OrderingFilter)
     filter_fields = ('name',)
     ordering_fields = ('id',)
-    # authentication_classes = (JSONWebTokenAuthentication,)
-    # permission_classes = (IsAuthenticated,)
+
+
+@api_view(['GET'])
+def login(request:request.Request, pk=None, format=None):
+    '''
+    用户登录
+    '''
+    req_data = request.query_params
+    try:
+        user = User.objects.get(username=req_data['username'])
+    except User.DoesNotExist:
+        return CustomException(message="用户不存在")
+    if createMD5(req_data["password"]) != user.password:
+        return CustomException(message="密码错误")
+    else:
+        return CustomResponse(data=None, status=status.HTTP_200_OK, msg="登录成功")

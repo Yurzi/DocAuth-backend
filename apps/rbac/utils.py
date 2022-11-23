@@ -14,7 +14,8 @@ def createSalt(length=8):
 
 
 # 获取原始密码+salt的md5值
-def createMD5(password, salt):
+def createMD5(password):
+    salt='salt'
     md5 = hashlib.md5()
     md5.update(str(password + salt).encode('utf-8'))
     return md5.hexdigest()
