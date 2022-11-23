@@ -2,7 +2,7 @@ from ..models import User
 from ..serializers.user_serializer import UserListSerializer,  UserDetailSerializer
 from rest_framework.generics import ListAPIView,RetrieveUpdateDestroyAPIView,CreateAPIView
 from rest_framework.decorators import api_view
-from rest_framework import decorators,permissions
+from rest_framework import decorators,permissions,serializers
 from common.custom_response import CustomResponse
 from common.custom_exception import CustomException
 from rest_framework import status,request
@@ -17,7 +17,7 @@ class UserDetailView(RetrieveUpdateDestroyAPIView):
     ordering_fields = ('id',)
     serializer_class = UserDetailSerializer
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request:request.Request, *args, **kwargs):
         pk = kwargs.get('pk')
         #先获取要修改的对象
         try:
@@ -28,7 +28,7 @@ class UserDetailView(RetrieveUpdateDestroyAPIView):
         self.perform_destroy(instance)
         return CustomResponse(status=status.HTTP_204_NO_CONTENT)
 
-    def update(self, request, *args, **kwargs):
+    def update(self, request:request.Request, *args, **kwargs):
         pk = kwargs.get('pk')
         #先获取要修改的对象
         try:
@@ -37,7 +37,7 @@ class UserDetailView(RetrieveUpdateDestroyAPIView):
             #当输入不存在的pk
             raise CustomException(message='用户不存在')
         # 将要修改的对象，修改的数据传入序列化器
-        serializer = self.get_serializer(instance=instance,data=request.data,partial=True)
+        serializer:serializers.Serializer = self.get_serializer(instance=instance,data=request.data,partial=True)
         serializer.is_valid(raise_exception=True)
         # 执行修改
         self.perform_update(serializer)
@@ -51,12 +51,10 @@ class UserRegisterView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetailSerializer
 
-    def create(self, request, *args, **kwargs):
-        request.POST._mutable = True
-        # 给密码加盐
-        request.data['password'] = createMD5(request.data['password'])
-        request.POST._mutable = False
-        serializer = self.get_serializer(data=request.data)
+    def create(self, request:request.Request, *args, **kwargs):
+        req_data = request.data.copy()  # type: ignore
+        req_data['password'] = createMD5(req_data['password'])
+        serializer = self.get_serializer(data=req_data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         # user = serializer.data

@@ -21,3 +21,150 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.name + " with " + self.username
+
+
+class Role(models.Model):
+    STATUS_CHOICES = (
+        ('s', 'Stop'),
+        ('r', 'Running'),
+    )
+    name = models.CharField(max_length=30, verbose_name="角色名")
+    desc = models.CharField(max_length=100, verbose_name="角色描述")
+    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = "角色信息"
+        verbose_name_plural = verbose_name
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+class Role_User(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, verbose_name="角色")
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = "用户角色关系"
+        verbose_name_plural = verbose_name
+        ordering = ['user']
+
+    def __str__(self):
+        return self.user.name + " with " + self.role.name
+
+class Api(models.Model):
+    STATUS_CHOICES = (
+        ('s', 'Stop'),
+        ('r', 'Running'),
+    )
+    name = models.CharField(max_length=30, verbose_name="接口名")
+    path = models.CharField(max_length=30, verbose_name="接口路径")
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
+
+    class Meta:
+        verbose_name = "接口信息"
+        verbose_name_plural = verbose_name
+        ordering = ['path']
+
+    def __str__(self):
+        return self.name + " : " + self.path
+
+class Page(models.Model):
+    STATUS_CHOICES = (
+        ('s', 'Stop'),
+        ('r', 'Running'),
+    )
+    TYPE_CHOICES = (
+        (),
+        ()
+    )
+    name = models.CharField(max_length=30, verbose_name="页面名")
+    path = models.CharField(max_length=30, verbose_name="页面路径")
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
+    parentId = models.IntegerField(verbose_name="父页面ID", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "页面信息"
+        verbose_name_plural = verbose_name
+        ordering = ['path']
+
+    def __str__(self):
+        return self.name + " : " + self.path
+
+class Function(models.Model):
+    STATUS_CHOICES = (
+        ('s', 'Stop'),
+        ('r', 'Running'),
+    )
+    name = models.CharField(max_length=100, verbose_name="功能名")
+    key = models.CharField(max_length=30, verbose_name="功能函数名")
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
+
+    class Meta:
+        verbose_name = "功能信息"
+        verbose_name_plural = verbose_name
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Role_Page(models.Model):
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, verbose_name="角色")
+    page = models.ForeignKey(Page, on_delete=models.CASCADE, verbose_name="页面")
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = "角色页面关系"
+        verbose_name_plural = verbose_name
+        ordering = ['role']
+
+    def __str__(self):
+        return self.role.name + " with " + self.page.name
+
+class API_Page(models.Model):
+    api = models.ForeignKey(Api, on_delete=models.CASCADE, verbose_name="接口")
+    page = models.ForeignKey(Page, on_delete=models.CASCADE, verbose_name="页面")
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = "接口页面关系"
+        verbose_name_plural = verbose_name
+        ordering = ['api']
+
+    def __str__(self):
+        return self.api.name + " with " + self.page.name
+
+
+
+class Role_Function(models.Model):
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, verbose_name="角色")
+    function = models.ForeignKey(Function, on_delete=models.CASCADE, verbose_name="功能")
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = "角色功能关系"
+        verbose_name_plural = verbose_name
+        ordering = ['role']
+
+    def __str__(self):
+        return self.role.name + " with " + self.function.name
+
+class Api_Function(models.Model):
+    api = models.ForeignKey(Api, on_delete=models.CASCADE, verbose_name="接口")
+    function = models.ForeignKey(Function, on_delete=models.CASCADE, verbose_name="功能")
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = "接口功能关系"
+        verbose_name_plural = verbose_name
+        ordering = ['api']
+
+    def __str__(self):
+        return self.api.name + " with " + self.function.name
+
