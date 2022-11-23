@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     "corsheaders",
     "apps.rbac",
+    "apps.business",
 ]
 
 # 中间件 ,需要加载的中间件。比如在请求前和响应后根据规则去执行某些代码的方法
