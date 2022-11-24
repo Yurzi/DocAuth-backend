@@ -6,13 +6,12 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    name = models.CharField(
-        max_length=30, default="unknown", verbose_name="姓名")
+    name = models.CharField(max_length=30, default="unknown", verbose_name="姓名")
     username = models.CharField(max_length=30, verbose_name="账号", unique=True)
     phone = models.CharField(max_length=20, verbose_name="电话")
     password = models.CharField(max_length=100, verbose_name="密码")
     email = models.EmailField(verbose_name="邮箱",max_length=100, null=True, blank=True)
-    REQUIRED_FIELDS: list[str] = [ 'phone', 'password']
+    REQUIRED_FIELDS: list[str] = [ 'phone', 'password','username']
 
     class Meta:
         verbose_name = "用户信息"
@@ -25,16 +24,87 @@ class User(AbstractUser):
 
 class Role(models.Model):
     STATUS_CHOICES = (
-        ('s', 'Stop'),
-        ('r', 'Running'),
+        ('s', '停止使用'),
+        ('r', '正在使用'),
     )
     name = models.CharField(max_length=30, verbose_name="角色名")
-    desc = models.CharField(max_length=100, verbose_name="角色描述")
+    desc = models.CharField(max_length=100, verbose_name="角色描述",blank=True)
     status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+    REQUIRED_FIELDS: list[str] = [ 'name']
 
     class Meta:
         verbose_name = "角色信息"
+        verbose_name_plural = verbose_name
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+
+class Api(models.Model):
+    STATUS_CHOICES = (
+        ('s', '停止使用'),
+        ('r', '正在使用'),
+        ('d', '开发中'),
+    )
+    name = models.CharField(max_length=30, verbose_name="接口名")
+    path = models.CharField(max_length=30, verbose_name="接口路径")
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
+    REQUIRED_FIELDS: list[str] = [ 'name','path']
+
+
+    class Meta:
+        verbose_name = "接口信息"
+        verbose_name_plural = verbose_name
+        ordering = ['path']
+
+    def __str__(self):
+        return self.name + " : " + self.path
+
+class Page(models.Model):
+    STATUS_CHOICES = (
+        ('s', '停止使用'),
+        ('r', '正在使用'),
+        ('d', '开发中'),
+    )
+    TYPE_CHOICES = (
+        (),
+        ()
+    )
+    name = models.CharField(max_length=30, verbose_name="页面名")
+    path = models.CharField(max_length=30, verbose_name="页面路径")
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
+    parent = models.IntegerField(verbose_name="父页面ID", null=True, blank=True)
+    REQUIRED_FIELDS: list[str] = [ 'name','path']
+
+
+    class Meta:
+        verbose_name = "页面信息"
+        verbose_name_plural = verbose_name
+        ordering = ['path']
+
+    def __str__(self):
+        return self.name + " : " + self.path
+
+class Function(models.Model):
+    STATUS_CHOICES = (
+        ('s', '停止使用'),
+        ('r', '正在使用'),
+        ('d', '开发中'),
+    )
+    name = models.CharField(max_length=100, verbose_name="功能名")
+    key = models.CharField(max_length=30, verbose_name="功能函数名")
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
+    REQUIRED_FIELDS: list[str] = [ 'name','key']
+
+
+    class Meta:
+        verbose_name = "功能信息"
         verbose_name_plural = verbose_name
         ordering = ['name']
 
@@ -53,66 +123,6 @@ class Role_User(models.Model):
 
     def __str__(self):
         return self.user.name + " with " + self.role.name
-
-class Api(models.Model):
-    STATUS_CHOICES = (
-        ('s', 'Stop'),
-        ('r', 'Running'),
-    )
-    name = models.CharField(max_length=30, verbose_name="接口名")
-    path = models.CharField(max_length=30, verbose_name="接口路径")
-    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
-    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
-
-    class Meta:
-        verbose_name = "接口信息"
-        verbose_name_plural = verbose_name
-        ordering = ['path']
-
-    def __str__(self):
-        return self.name + " : " + self.path
-
-class Page(models.Model):
-    STATUS_CHOICES = (
-        ('s', 'Stop'),
-        ('r', 'Running'),
-    )
-    TYPE_CHOICES = (
-        (),
-        ()
-    )
-    name = models.CharField(max_length=30, verbose_name="页面名")
-    path = models.CharField(max_length=30, verbose_name="页面路径")
-    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
-    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
-    parentId = models.IntegerField(verbose_name="父页面ID", null=True, blank=True)
-
-    class Meta:
-        verbose_name = "页面信息"
-        verbose_name_plural = verbose_name
-        ordering = ['path']
-
-    def __str__(self):
-        return self.name + " : " + self.path
-
-class Function(models.Model):
-    STATUS_CHOICES = (
-        ('s', 'Stop'),
-        ('r', 'Running'),
-    )
-    name = models.CharField(max_length=100, verbose_name="功能名")
-    key = models.CharField(max_length=30, verbose_name="功能函数名")
-    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
-    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
-
-    class Meta:
-        verbose_name = "功能信息"
-        verbose_name_plural = verbose_name
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
 
 class Role_Page(models.Model):
     role = models.ForeignKey(Role, on_delete=models.CASCADE, verbose_name="角色")
