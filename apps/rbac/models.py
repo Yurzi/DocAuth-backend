@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from utils import createMD5
 # Create your models here.
 
 # 代替了系统自带的权限管理的用户表
@@ -20,6 +21,9 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.name + " with " + self.username
+    
+    def check_password(self, raw_password: str) -> bool:
+        return super().check_password(createMD5(raw_password))
 
 
 class Role(models.Model):
