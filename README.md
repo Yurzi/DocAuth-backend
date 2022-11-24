@@ -36,3 +36,6 @@ CREATE DATABASE doc_auth;
 python manage.py runserver
 ```
 
+
+##zqx测试，不用理会，一会儿就删
+
