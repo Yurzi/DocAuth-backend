@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from utils import createMD5
+from .utils import createMD5
 # Create your models here.
 
 # 代替了系统自带的权限管理的用户表
@@ -12,7 +12,7 @@ class User(AbstractUser):
     phone = models.CharField(max_length=20, verbose_name="电话")
     password = models.CharField(max_length=100, verbose_name="密码")
     email = models.EmailField(verbose_name="邮箱",max_length=100, null=True, blank=True)
-    REQUIRED_FIELDS: list[str] = [ 'phone', 'password','username']
+    REQUIRED_FIELDS: list[str] = [ 'phone', 'password']
 
     class Meta:
         verbose_name = "用户信息"
