@@ -1,7 +1,9 @@
+# 此文件不需要修改，仅做配置文件参考。
+# 实际运行时请自行在此目录下创建my.cnf文件，可按此文件格式进行配置。替换数据库名称用户名密码等。
 [client]
-database = doc_auth
-user = helen
-password = asdfghjkl456258
+database = Your Database
+user = Your Username
+password = Your Password
 default-character-set = utf8
 host = 127.0.0.1
 port = 3306
