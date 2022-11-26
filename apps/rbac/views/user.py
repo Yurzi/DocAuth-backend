@@ -1,12 +1,13 @@
 from ..models import User
 from ..serializers.user_serializer import UserListSerializer,  UserDetailSerializer
 from rest_framework.generics import ListAPIView,RetrieveUpdateDestroyAPIView,CreateAPIView
-from rest_framework.decorators import api_view
-from rest_framework import decorators,permissions,serializers
+from rest_framework.decorators import api_view,permission_classes
+from rest_framework import permissions,serializers
 from common.custom_response import CustomResponse
 from common.custom_exception import CustomException
 from rest_framework import status,request
 from ..utils import createMD5
+from .token import CustomObtainPairView
 
 class UserDetailView(RetrieveUpdateDestroyAPIView):
     '''
@@ -16,6 +17,7 @@ class UserDetailView(RetrieveUpdateDestroyAPIView):
     search_fields = ('username', 'name', 'phone')
     ordering_fields = ('id',)
     serializer_class = UserDetailSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def destroy(self, request:request.Request, *args, **kwargs):
         pk = kwargs.get('pk')
@@ -50,14 +52,13 @@ class UserRegisterView(CreateAPIView):
     '''
     queryset = User.objects.all()
     serializer_class = UserDetailSerializer
+    permission_classes=[permissions.AllowAny]
 
     def create(self, request:request.Request, *args, **kwargs):
         req_data = request.data.copy()  # type: ignore
-        req_data['password'] = createMD5(req_data['password'])
         serializer = self.get_serializer(data=req_data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        # user = serializer.data
         # refresh = RefreshToken.for_user(user)
         # res = {
         #     "refresh": str(refresh),
@@ -65,6 +66,7 @@ class UserRegisterView(CreateAPIView):
         # }
         headers = self.get_success_headers(serializer.data)
         return CustomResponse(data=None, status=status.HTTP_201_CREATED, headers=headers,msg="注册成功")
+
 
 
 class UserListView(ListAPIView):
@@ -75,6 +77,7 @@ class UserListView(ListAPIView):
 
 
 @api_view(['GET'])
+@permission_classes([permissions.AllowAny])
 def login(request:request.Request, pk=None, format=None):
     '''
     用户登录
@@ -87,4 +90,7 @@ def login(request:request.Request, pk=None, format=None):
     if createMD5(req_data["password"]) != user.password:
         return CustomException(message="密码错误")
     else:
+        res_data = {
+
+        }
         return CustomResponse(data=None, status=status.HTTP_200_OK, msg="登录成功")

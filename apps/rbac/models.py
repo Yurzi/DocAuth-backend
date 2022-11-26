@@ -13,6 +13,8 @@ class User(AbstractUser):
     password = models.CharField(max_length=100, verbose_name="密码")
     email = models.EmailField(verbose_name="邮箱",max_length=100, null=True, blank=True)
     REQUIRED_FIELDS: list[str] = [ 'phone', 'password']
+    USERNAME_FIELD = "username"
+
 
     class Meta:
         verbose_name = "用户信息"
@@ -22,8 +24,6 @@ class User(AbstractUser):
     def __str__(self):
         return self.name + " with " + self.username
     
-    def check_password(self, raw_password: str) -> bool:
-        return super().check_password(createMD5(raw_password))
 
 
 class Role(models.Model):
