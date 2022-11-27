@@ -1,5 +1,6 @@
 from random import Random
 import hashlib
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 # 获取由4位随机大小写字母、数字组成的salt值
@@ -19,3 +20,11 @@ def createMD5(password):
     md5 = hashlib.md5()
     md5.update(str(password + salt).encode('utf-8'))
     return md5.hexdigest()
+
+
+def getTokensForUser(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }

@@ -65,7 +65,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "common.middleware.log_middleware.LogMiddle"
+    "common.log_middleware.LogMiddle"
 ]
 
 # 指定URL列表文件 父级URL配置

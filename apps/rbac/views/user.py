@@ -6,8 +6,7 @@ from rest_framework import permissions,serializers
 from common.custom_response import CustomResponse
 from common.custom_exception import CustomException
 from rest_framework import status,request
-from ..utils import createMD5
-from .token import CustomObtainPairView
+from ..utils import getTokensForUser
 
 class UserDetailView(RetrieveUpdateDestroyAPIView):
     '''
@@ -43,7 +42,7 @@ class UserDetailView(RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         # 执行修改
         self.perform_update(serializer)
-        return CustomResponse(data=None, status=status.HTTP_201_CREATED, msg="修改用户信息成功")
+        return CustomResponse(data=None, status=status.HTTP_201_CREATED, message="修改用户信息成功")
 
 
 class UserRegisterView(CreateAPIView):
@@ -65,7 +64,7 @@ class UserRegisterView(CreateAPIView):
         #     "access": str(refresh.access_token),
         # }
         headers = self.get_success_headers(serializer.data)
-        return CustomResponse(data=None, status=status.HTTP_201_CREATED, headers=headers,msg="注册成功")
+        return CustomResponse(data=None, status=status.HTTP_201_CREATED, headers=headers,message="注册成功")
 
 
 
@@ -76,21 +75,19 @@ class UserListView(ListAPIView):
     ordering_fields = ('id',)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def login(request:request.Request, pk=None, format=None):
     '''
     用户登录
     '''
-    req_data = request.query_params
+    req_data = request.data
     try:
-        user = User.objects.get(username=req_data['username'])
+        user = User.objects.get(username=req_data['username']) # type: ignore
     except User.DoesNotExist:
-        return CustomException(message="用户不存在")
-    if createMD5(req_data["password"]) != user.password:
-        return CustomException(message="密码错误")
+        return CustomResponse(message="用户不存在",code=402)
+    if not user.check_password(req_data['password']):  # type: ignore
+        return CustomResponse(message="密码错误",code=402)
     else:
-        res_data = {
-
-        }
-        return CustomResponse(data=None, status=status.HTTP_200_OK, msg="登录成功")
+        res_data = getTokensForUser(user)
+        return CustomResponse(data=res_data, message="登录成功")
