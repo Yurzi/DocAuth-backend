@@ -52,8 +52,6 @@ INSTALLED_APPS = [
     "corsheaders",
     "apps.rbac",
     "apps.business",
-    "projectApp.apps.ProjectappConfig"
-
 ]
 
 # 中间件 ,需要加载的中间件。比如在请求前和响应后根据规则去执行某些代码的方法

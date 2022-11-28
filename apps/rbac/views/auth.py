@@ -1,6 +1,5 @@
 from django.contrib.auth.backends import ModelBackend
 from django.db.models import Q
-from rest_framework import status
 from ..models import User
 from common.custom_exception import CustomException
 
