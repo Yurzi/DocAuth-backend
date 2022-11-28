@@ -89,5 +89,6 @@ def login(request:request.Request, pk=None, format=None):
     if not user.check_password(req_data['password']):  # type: ignore
         return CustomResponse(message="密码错误",code=402)
     else:
-        res_data = getTokensForUser(user)
+        
+        res_data = {**getTokensForUser(user),'id':user.pk}
         return CustomResponse(data=res_data, message="登录成功")
