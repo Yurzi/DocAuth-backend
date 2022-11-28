@@ -15,9 +15,9 @@ def respondDataToFront(preData):
     # data = serializers.serialize('json', preData)
     # jsondata = json.loads(data)
     data = {
-        'data': preData,
         'code': 200,
-        'message': "获取成功"
+        'message': "获取成功",
+        'data': preData
     }
     print("完成发送任务")
     return JsonResponse(data=data, safe=False)
@@ -32,22 +32,25 @@ def saveProject(request):
 
 # 根据用户id得到该用户所参加的所有项目列表
 def getThisUserProjectList(request):
-    thisUserId = 1
+    thisUserId = request.GET.get("userId")
+    print(thisUserId)
     projectList = models.Project_UserRelation.objects.filter(userId=thisUserId).values_list("projectId__status",
                                                                                             "projectId__name",
                                                                                             "projectId__id",
-                                                                                            "projectId__addTime")
+                                                                                            "projectId__addTime"
+                                                                                            ).distinct()
     print(projectList)
-    for obj in projectList:
-        print(obj)
+    # for obj in projectList:
+    #     print(obj)
     # return HttpResponse(json.dumps(projectList))
-    return HttpResponse("成功")
+    return respondDataToFront(list(projectList))
 
 
 # 根据项目的pid得到该项目下的任务列表以及各任务对应的人员分配信息
 def getTasksFromTheProject(request):
     projectName = "汽车电子系统制造工程"
-    projectId = 1
+    projectId = request.GET.get("projectId")
+    print(projectId)
     TaskList = models.Task.objects.filter(projectId=projectId).values()
     userList = []
     applierList = []
@@ -69,6 +72,10 @@ def getTasksFromTheProject(request):
 def saveTask(request):
     taskName = "阶段一任务一"
     taskType = 1  # 表示当前任务处于第几阶段
+    dic = request.POST.get("userIdProcedureMap")
+    print(dic[2])
+    print(request.POST.get("taskName"))
+    print("这里是用户列表")
     userIdProcedureMap = {2: 1, 3: 2, 4: 3, 1: 4}  # 前端传递的用户项目
     pId = 1  # 由前端将数据传递过来
     project = models.Project.objects.get(id=pId)
