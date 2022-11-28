@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+import os,sys,datetime
+
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -33,6 +36,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 
+#重载系统的用户，让UserProfile生效
+AUTH_USER_MODEL = 'rbac.User'
+
 # 用来注册App 前6个是django自带的应用
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -42,8 +48,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "App.apps.TheAppConfig",
+    'rest_framework_simplejwt',
     "corsheaders",
+    "apps.rbac",
+    "apps.business",
 ]
 
 # 中间件 ,需要加载的中间件。比如在请求前和响应后根据规则去执行某些代码的方法
@@ -57,6 +65,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "common.log_middleware.LogMiddle"
 ]
 
 # 指定URL列表文件 父级URL配置
@@ -116,20 +125,25 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'apps.rbac.views.auth.CustomBackend',
+)
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 # 语言设置 默认英语， 中文是zh-hans
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "zh-hans"
 # 时区设置，中国的是：Asia/Shanghai
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Shanghai"
+USE_L10N = True
 # i18n字符集是否支持
 USE_I18N = True
 # 是否使用timezone
 # 保证存储到数据库中的是 UTC 时间；
 # 在函数之间传递时间参数时，确保时间已经转换成 UTC 时间；
-USE_TZ = True
+USE_TZ = False
 
+APPEND_SLASH=False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -143,10 +157,63 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Rest framework settings
 REST_FRAMEWORK = {
+    'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',
+    'DEFAULT_PAGINATION_CLASS':'common.pagination.StandardResultsSetPagination',
+    "EXCEPTION_HANDLER": "common.custom_exception.custom_exception_handler",
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-    ]
+        "rest_framework.permissions.AllowAny",
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
 }
 
+# token设置
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=15),
+    'ROTATE_REFRESH_TOKENS': True,
+}
+
+LOGGING = {
+    'version': 1,
+    # 禁用日志
+    'disable_existing_loggers': False,
+    'loggers': {
+        '': {
+            # 将系统接受到的体制，交给handler去处理
+            'handlers': ['console'],
+            'level': 'INFO',
+        }
+    },
+    'handlers': {
+        'default': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '%s/%s' % (str(BASE_DIR/"log"), 'request.log'),
+            'maxBytes': 1024 * 1024 * 5,  # 文件大小
+            'backupCount': 5,  # 备份数
+            # 'formatter': 'standard',  # 输出格式
+            'encoding': 'utf-8',  # 设置默认编码，否则打印出来汉字乱码
+        },
+        'console': {
+            # handler将日志信息存放在day6/logs/sys.log
+            'filename': '%s/%s' % (str(BASE_DIR/"log"), 'request.log'),
+            'level': 'INFO',
+            # 指定日志的格式
+            'formatter': '',
+            # 备份
+            'class': 'logging.handlers.RotatingFileHandler',
+            # 日志文件大小：5M
+            'maxBytes': 5 * 1024 * 1024,
+            'encoding':"utf-8"
+        }
+    },
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s %(message)s'
+        }
+    }
+}
