@@ -44,6 +44,7 @@ def saveProject(request):
     projectId = data["projectId"]
     print(phase1)
     print(projectId)
+
     # 这样的话，多线程后面要加互斥锁
     # 取数据库中最后一个元组的id
     task = Task.objects.last()
@@ -66,21 +67,13 @@ def saveProject(request):
             # 将task和project一一关联起来
             Task_Project.objects.create(task=tmp, project=project, number=1, addTime=datetime.datetime.now())
             #将task和user,project和user一一关联起来
-            for obj in task['user']:
+            for obj in task['staffs']:
                 user = User.objects.get(pk=obj)
                 Task_User.objects.create(task=tmp,user=user,addTime=datetime.datetime.now())
                 if  not Project_User.objects.filter(user_id=obj, project_id=projectId).exists():
                     Project_User.objects.create(project=project,user=user,addTime=datetime.datetime.now())
             ct += 1
         initialId += ct
-
-    # for task in phase2:
-    #     tmp = Task.objects.create(name=task["name"], desc="00", addTime=datetime.datetime.now(), type=1 ,
-    #                               leftSon=int(task['leftSon']) + initialId,
-    #                               rightBrother=int(task['rightBrother']) + initialId, phase=1)
-    #     Project_User.objects.create(project=project, user=tmp, addTime=datetime.datetime.now())
-    #     Task_Project.objects.create(task=tmp, project=project, number=1, addTime=datetime.datetime.now())
-
     return HttpResponse("成功")
 
 
@@ -94,9 +87,6 @@ def getThisUserProjectList(request):
                                                                            "project__addTime"
                                                                            ).distinct()
     print(projectList)
-    # for obj in projectList:
-    #     print(obj)
-    # return HttpResponse(json.dumps(projectList))
     return respondDataToFront(list(projectList))
 
 
