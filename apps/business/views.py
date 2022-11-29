@@ -27,7 +27,7 @@ def respondDataToFront(preData):
 def newProject(request):
     projectName = "项目1"
     Project.objects.create(name=projectName, status='r', addTime=datetime.datetime.now())
-    print("你好")
+    print("你好ssss")
     return HttpResponse("成功")
 
 
