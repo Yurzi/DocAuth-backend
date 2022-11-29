@@ -1,16 +1,18 @@
 import datetime
 from django.http.response import JsonResponse
-from django.core import serializers
-from django.shortcuts import render, HttpResponse, redirect
+#from django.core import serializers
+from django.http import Http404
 import json
+from django.shortcuts import render, HttpResponse, redirect
+
 # Create your views here.
-from django.views.decorators.csrf import csrf_exempt
 
 from ..rbac.models import User
-from .models import Project, Task, Task_User, Project_User, Task_Project
+from .models import Project, Task, Task_User, Project_User,Article,Record,Task_Project,Task_User
 import datetime
-
-
+from rest_framework import serializers
+from rest_framework import views
+from rest_framework.response import Response
 # 向前端返回json数据
 def respondDataToFront(preData):
     # data = serializers.serialize('json', preData)
@@ -24,63 +26,10 @@ def respondDataToFront(preData):
     return JsonResponse(data=data, safe=False)
 
 
-def newProject(request):
-    projectName = "项目1"
-    Project.objects.create(name=projectName, status='r', addTime=datetime.datetime.now())
-    print("你好")
-    return HttpResponse("成功")
-
-
 # 保存新建的项目
-@csrf_exempt
 def saveProject(request):
-    data = json.loads(request.body)
-    print(data)
-    phaseList = []
-    phase1 = data["phase1"]
-    phase2 = data["phase2"]
-    phaseList.append(phase1)
-    phaseList.append(phase2)
-    projectId = data["projectId"]
-    print(phase1)
-    print(projectId)
-    # 这样的话，多线程后面要加互斥锁
-    # 取数据库中最后一个元组的id
-    task = Task.objects.last()
-    project = Project.objects.get(id=projectId)
-    initialId = task.id + 1
-    # initialId = 1
-    print(initialId)
-    for phase in phaseList :
-        ct = 0
-        for task in phase:
-            ls = 0
-            rb = 0
-            if int(task['leftSon']) != 0 :
-                ls = int(task['leftSon']) + initialId
-            if int(task['rightBrother']) != 0 :
-                rb = int(task['rightBrother']) + initialId
-            tmp = Task.objects.create(name=task["name"], desc="00", addTime=datetime.datetime.now(), type=1,
-                                      leftSon=ls,
-                                      rightBrother=rb, phase=1)
-            # 将task和project一一关联起来
-            Task_Project.objects.create(task=tmp, project=project, number=1, addTime=datetime.datetime.now())
-            #将task和user,project和user一一关联起来
-            for obj in task['user']:
-                user = User.objects.get(pk=obj)
-                Task_User.objects.create(task=tmp,user=user,addTime=datetime.datetime.now())
-                if  not Project_User.objects.filter(user_id=obj, project_id=projectId).exists():
-                    Project_User.objects.create(project=project,user=user,addTime=datetime.datetime.now())
-            ct += 1
-        initialId += ct
-
-    # for task in phase2:
-    #     tmp = Task.objects.create(name=task["name"], desc="00", addTime=datetime.datetime.now(), type=1 ,
-    #                               leftSon=int(task['leftSon']) + initialId,
-    #                               rightBrother=int(task['rightBrother']) + initialId, phase=1)
-    #     Project_User.objects.create(project=project, user=tmp, addTime=datetime.datetime.now())
-    #     Task_Project.objects.create(task=tmp, project=project, number=1, addTime=datetime.datetime.now())
-
+    projectName = "项目1"
+    Project.objects.create(name=projectName, status='r')
     return HttpResponse("成功")
 
 
@@ -88,11 +37,11 @@ def saveProject(request):
 def getThisUserProjectList(request):
     thisUserId = request.GET.get("userId")
     print(thisUserId)
-    projectList = Project_User.objects.filter(user=thisUserId).values_list("project__status",
-                                                                           "project__name",
-                                                                           "project__id",
-                                                                           "project__addTime"
-                                                                           ).distinct()
+    projectList = Project_User.objects.filter(user=thisUserId).values_list("projectId__status",
+                                                                                            "projectId__name",
+                                                                                            "projectId__id",
+                                                                                            "projectId__addTime"
+                                                                                            ).distinct()
     print(projectList)
     # for obj in projectList:
     #     print(obj)
@@ -105,17 +54,17 @@ def getTasksFromTheProject(request):
     projectName = "汽车电子系统制造工程"
     projectId = request.GET.get("projectId")
     print(projectId)
-    TaskList = Task_Project.objects.filter(project=projectId).values("task__id", "task__name", "task__status",
-                                                                     "task__leftSon",
-                                                                     "task__rightBrother")
+    TaskList = Task.objects.filter(project=projectId).values()
     userList = []
     applierList = []
     # 下面是默认两个阶段，每个阶段有若干个任务
-    # print(list(Task_User.objects.filter(task_id=18).values("user__username")))
+
+    # print(list(models.Task_User.objects.filter(taskId=18).values("userId__username")))
+
     for task in TaskList:
-        applierList.append(list(Task_User.objects.filter(task_id=task['task__id']).values("user__username")))
+        applierList.append(list(Task_User.objects.filter(task=task['id']).values("userId__username")))
     TaskList = list(TaskList)
-    # print(TaskList)
+    print(TaskList)
     for i in range(len(TaskList)):
         TaskList[i]['username'] = applierList[i]
     print(applierList)
@@ -123,12 +72,11 @@ def getTasksFromTheProject(request):
     return respondDataToFront(TaskList)
 
 
-@csrf_exempt
 def saveTask(request):
     taskName = "阶段一任务一"
-    taskType = 1  # 表示当前任务的类型
+    taskType = 1  # 表示当前任务处于第几阶段
     dic = request.POST.get("userIdProcedureMap")
-    # print(dic[2])
+    print(dic[2])
     print(request.POST.get("taskName"))
     print("这里是用户列表")
     userIdProcedureMap = {2: 1, 3: 2, 4: 3, 1: 4}  # 前端传递的用户项目
@@ -137,10 +85,8 @@ def saveTask(request):
     # models.task.objects.create(name=projectName, status=0, addTime=datetime.datetime.now())
 
     # 1保存当前任务(互斥锁需要)
-    Task.objects.create(name=taskName, type=taskType)
+    Task.objects.create(project=pId, number=0, name=taskName,  type=taskType)
     task = Task.objects.last()
-    print(task.id)
-    Task_Project.objects.create(project=project, task=task, number=0, addTime=datetime.datetime.now())
 
     # 2保存当前项目下的人员分工（互斥锁）
     for key in userIdProcedureMap.keys():
@@ -150,7 +96,7 @@ def saveTask(request):
     # 3保存当前任务下的人员分工(这个地方需要加锁)
     for key, value in userIdProcedureMap.items():
         userInfor = User.objects.get(id=key)
-        Task_User.objects.create(task=task, user=userInfor, addTime=datetime.datetime.now())
+        Task_User.objects.create(task=task, user=userInfor, step=value)
     return HttpResponse("成功")
 
 
@@ -186,3 +132,307 @@ def orm(request):
         print(obj.pk, obj.name)
 
     return HttpResponse("成功")
+#Project序列化器
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = '__all__'
+        read_only_fields = ('addTime',)
+#Task序列化器
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = '__all__'
+        read_only_fields = ('addTime',)
+#Article序列化器
+class ArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = '__all__'
+        read_only_fields = ('addTime')
+#Record序列化器
+class RecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Record
+        fields = '__all__'
+        read_only_fields = ('addTime')
+#Project_User序列化器
+class Project_UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project_User
+        fields = '__all__'
+        read_only_fields = ('addTime')
+#Task_Project序列化器
+class Task_ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task_Project
+        fields = '__all__'
+        read_only_fields = ('addTime')
+#Task_Project序列化器
+class Task_UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task_User
+        fields = '__all__'
+        read_only_fields = ('addTime')
+#Project的增删改查接口类
+class ProjectView(views.APIView):
+    def get(self,request):
+        #print(123123)
+        project_list = Project.objects.all()
+        serializer = ProjectSerializer(instance = project_list,many = True)
+        return Response(serializer.data)
+    def post(self,request):
+        print(12312312)
+        serializer = ProjectSerializer(data = request.data)
+        if serializer.is_valid():
+            #new_project = Project.objects.create(**serializer.validated_data)
+            #serializer.save(author=request.user)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+class ProjectdetailView(views.APIView):
+    def get_object(self, pk):
+        try:
+            return Project.objects.get(pk=pk)
+        except Project.DoesNotExist:
+            raise Http404
+    def get(self,request,id):
+        project = self.get_object(pk = id)
+        serializer = ProjectSerializer(instance=project,many = False)
+        return Response(serializer.data)
+    def put(self,request,id):
+        update_project = self.get_object(pk = id)
+        serializer = ProjectSerializer(instance=update_project,data=request.data)
+        if serializer.is_valid():
+            #Project.objects.filter(pk=id).update(**serializer.validated_data)
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    def delete(self, request, pk):
+        task = self.get_object(pk)
+        task.delete()
+        return Response()
+#Task的增删改查接口类
+class TaskView(views.APIView):
+    def get(self,request):
+        Task_list = Task.objects.all()
+        serializer = TaskSerializer(instance = Task_list,many = True)
+        return Response(serializer.data)
+    def post(self,request):
+        serializer = TaskSerializer(data = request.data)
+        if serializer.is_valid():
+            #new_project = Project.objects.create(**serializer.validated_data)
+            #serializer.save(author=request.user)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+class TaskdetailView(views.APIView):
+    def get_object(self, pk):
+        try:
+            return Task.objects.get(pk=pk)
+        except Task.DoesNotExist:
+            raise Http404
+    def get(self,request,id):
+        task = self.get_object(pk = id)
+        serializer = TaskSerializer(instance=task,many = False)
+        return Response(serializer.data)
+    def put(self,request,id):
+        update_Task = self.get_object(pk = id)
+        serializer = TaskSerializer(instance=update_Task,data=request.data)
+        if serializer.is_valid():
+            #Project.objects.filter(pk=id).update(**serializer.validated_data)
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    def delete(self, request, pk):
+        task = self.get_object(pk)
+        task.delete()
+        return Response()
+#Article的增删改查接口类
+class ArticleView(views.APIView):
+    def get(self,request):
+        Article_list = Article.objects.all()
+        serializer = ArticleSerializer(instance = Article_list,many = True)
+        return Response(serializer.data)
+    def post(self,request):
+        serializer = ArticleSerializer(data = request.data)
+        if serializer.is_valid():
+            #new_project = Project.objects.create(**serializer.validated_data)
+            #serializer.save(author=request.user)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+class ArticledetailView(views.APIView):
+    def get_object(self, pk):
+        try:
+            return Article.objects.get(pk=pk)
+        except Article.DoesNotExist:
+            raise Http404
+    def get(self,request,id):
+        article = self.get_object(pk = id)
+        serializer = ArticleSerializer(instance=article,many = False)
+        return Response(serializer.data)
+    def put(self,request,id):
+        update_Article = self.get_object(pk = id)
+        serializer = ArticleSerializer(instance=update_Article,data=request.data)
+        if serializer.is_valid():
+            #Project.objects.filter(pk=id).update(**serializer.validated_data)
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    def delete(self, request, pk):
+        article = self.get_object(pk)
+        article.delete()
+        return Response()
+#Record的增删改查接口类
+class RecordView(views.APIView):
+    def get(self,request):
+        Record_list = Record.objects.all()
+        serializer = RecordSerializer(instance = Record_list,many = True)
+        return Response(serializer.data)
+    def post(self,request):
+        serializer = RecordSerializer(data = request.data)
+        if serializer.is_valid():
+            #new_project = Project.objects.create(**serializer.validated_data)
+            #serializer.save(author=request.user)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+class RecorddetailView(views.APIView):
+    def get_object(self, pk):
+        try:
+            return Record.objects.get(pk=pk)
+        except Record.DoesNotExist:
+            raise Http404
+    def get(self,request,id):
+        record = self.get_object(pk = id)
+        serializer = RecordSerializer(instance=record,many = False)
+        return Response(serializer.data)
+    def put(self,request,id):
+        update_Record = self.get_object(pk = id)
+        serializer = RecordSerializer(instance=update_Record,data=request.data)
+        if serializer.is_valid():
+            #Project.objects.filter(pk=id).update(**serializer.validated_data)
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    def delete(self, request, pk):
+        record = self.get_object(pk)
+        record.delete()
+        return Response()
+#Project_User的增删改查接口类
+class Project_UserView(views.APIView):
+    def get(self,request):
+        Project_User_list = Project_User.objects.all()
+        serializer = Project_UserSerializer(instance = Project_User_list,many = True)
+        return Response(serializer.data)
+    def post(self,request):
+        serializer = Project_UserSerializer(data = request.data)
+        if serializer.is_valid():
+            #new_project = Project.objects.create(**serializer.validated_data)
+            #serializer.save(author=request.user)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+class Project_UserdetailView(views.APIView):
+    def get_object(self, pk):
+        try:
+            return Project_User.objects.get(pk=pk)
+        except Project_User.DoesNotExist:
+            raise Http404
+    def get(self,request,id):
+        project_User = self.get_object(pk = id)
+        serializer = Project_UserSerializer(instance=project_User,many = False)
+        return Response(serializer.data)
+    def put(self,request,id):
+        update_Project_User = self.get_object(pk = id)
+        serializer = Project_UserSerializer(instance=update_Project_User,data=request.data)
+        if serializer.is_valid():
+            #Project.objects.filter(pk=id).update(**serializer.validated_data)
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    def delete(self, request, pk):
+        project_User = self.get_object(pk)
+        project_User.delete()
+        return Response()
+#Task_Project的增删改查接口类
+class Task_ProjectView(views.APIView):
+    def get(self,request):
+        Task_Project_list = Task_Project.objects.all()
+        serializer = Task_ProjectSerializer(instance = Task_Project_list,many = True)
+        return Response(serializer.data)
+    def post(self,request):
+        serializer = Task_ProjectSerializer(data = request.data)
+        if serializer.is_valid():
+            #new_project = Project.objects.create(**serializer.validated_data)
+            #serializer.save(author=request.user)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+class Task_ProjectdetailView(views.APIView):
+    def get_object(self, pk):
+        try:
+            return Task_Project.objects.get(pk=pk)
+        except Task_Project.DoesNotExist:
+            raise Http404
+    def get(self,request,id):
+        task_Project = self.get_object(pk = id)
+        serializer = Task_ProjectSerializer(instance=task_Project,many = False)
+        return Response(serializer.data)
+    def put(self,request,id):
+        update_Project_User = self.get_object(pk = id)
+        serializer = Task_ProjectSerializer(instance=update_Project_User,data=request.data)
+        if serializer.is_valid():
+            #Project.objects.filter(pk=id).update(**serializer.validated_data)
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    def delete(self, request, pk):
+        task_Project = self.get_object(pk)
+        task_Project.delete()
+        return Response()
+#Task_User的增删改查接口类
+class Task_UserView(views.APIView):
+    def get(self,request):
+        Task_User_list = Task_User.objects.all()
+        serializer = Task_UserSerializer(instance = Task_User_list,many = True)
+        return Response(serializer.data)
+    def post(self,request):
+        serializer = Task_UserSerializer(data = request.data)
+        if serializer.is_valid():
+            #new_project = Project.objects.create(**serializer.validated_data)
+            #serializer.save(author=request.user)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+class Task_UserdetailView(views.APIView):
+    def get_object(self, pk):
+        try:
+            return Task_User.objects.get(pk=pk)
+        except Task_User.DoesNotExist:
+            raise Http404
+    def get(self,request,id):
+        task_User = self.get_object(pk = id)
+        serializer = Task_UserSerializer(instance=task_User,many = False)
+        return Response(serializer.data)
+    def put(self,request,id):
+        update_Task_User = self.get_object(pk = id)
+        serializer = Task_UserSerializer(instance=update_Task_User,data=request.data)
+        if serializer.is_valid():
+            #Project.objects.filter(pk=id).update(**serializer.validated_data)
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    def delete(self, request, pk):
+        task_User = self.get_object(pk)
+        task_User.delete()
+        return Response()
+

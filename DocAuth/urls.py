@@ -20,6 +20,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 from apps.rbac.views.token import CustomObtainPairView
+from apps.business import urls as apps_url
 
 urlpatterns = [
     path('admin', admin.site.urls),
@@ -28,5 +29,6 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/v1', include('apps.rbac.urls')),
-    path('projectApp/', include('apps.business.urls'))
+    path('projectApp/', include('apps.business.urls')),
+    path('projectApp', include(apps_url))
 ]
