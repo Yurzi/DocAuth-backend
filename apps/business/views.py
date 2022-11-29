@@ -92,7 +92,8 @@ def getThisUserProjectList(request):
 
 # 根据项目的pid得到该项目下的任务列表以及各任务对应的人员分配信息
 def getTasksFromTheProject(request):
-    projectName = "汽车电子系统制造工程"
+    # projectName = "汽车电子系统制造工程"
+    print(request.GET)
     projectId = request.GET.get("projectId")
     print(projectId)
     TaskList = Task_Project.objects.filter(project=projectId).values("task__id", "task__name", "task__status",
@@ -101,11 +102,9 @@ def getTasksFromTheProject(request):
     userList = []
     applierList = []
     # 下面是默认两个阶段，每个阶段有若干个任务
-    # print(list(Task_User.objects.filter(task_id=18).values("user__username")))
     for task in TaskList:
         applierList.append(list(Task_User.objects.filter(task_id=task['task__id']).values("user__username")))
     TaskList = list(TaskList)
-    # print(TaskList)
     for i in range(len(TaskList)):
         TaskList[i]['username'] = applierList[i]
     print(applierList)
