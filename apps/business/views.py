@@ -1,13 +1,13 @@
 import datetime
 from django.http.response import JsonResponse
 from django.core import serializers
-import json
 from django.shortcuts import render, HttpResponse, redirect
-
+import json
 # Create your views here.
+from django.views.decorators.csrf import csrf_exempt
 
 from ..rbac.models import User
-from .models import Project, Task, Task_User, Project_User
+from .models import Project, Task, Task_User, Project_User, Task_Project
 import datetime
 
 
@@ -24,10 +24,39 @@ def respondDataToFront(preData):
     return JsonResponse(data=data, safe=False)
 
 
-# 保存新建的项目
-def saveProject(request):
+def newProject(request):
     projectName = "项目1"
-    Project.objects.create(name=projectName, status='r')
+    Project.objects.create(name=projectName, status='r', addTime=datetime.datetime.now())
+    return HttpResponse("成功")
+
+
+# 保存新建的项目
+@csrf_exempt
+def saveProject(request):
+    data = json.loads(request.body)
+    print(data)
+    phase1 = data["phase1"]
+    phase2 = data["phase2"]
+    projectId = data["projectId"]
+    print(phase1)
+    print(projectId)
+    # 取数据库中最后一个元组的id
+    task = Task.objects.last()
+    project = Project.objects.get(id=projectId)
+    initialId = task.id + 1
+    ct = 0
+    print(initialId)
+    for task in phase1:
+        Task.objects.create(name=task["name"], desc="00", addTime=datetime.datetime.now(), type=1,
+                            leftSon=int(task['leftSon']) + initialId,
+                            rightBrother=int(task['rightBrother']) + initialId, phase=1)
+        # 还差将task和project一一关联起来
+        ct += 1
+    initialId += ct
+    for task in phase2:
+        Task.objects.create(name=task["name"], desc="00", addTime=datetime.datetime.now(), type=1,
+                            leftSon=int(task['leftSon']) + initialId,
+                            rightBrother=int(task['rightBrother']) + initialId, phase=1)
     return HttpResponse("成功")
 
 
@@ -35,11 +64,11 @@ def saveProject(request):
 def getThisUserProjectList(request):
     thisUserId = request.GET.get("userId")
     print(thisUserId)
-    projectList = Project_User.objects.filter(user=thisUserId).values_list("projectId__status",
-                                                                                            "projectId__name",
-                                                                                            "projectId__id",
-                                                                                            "projectId__addTime"
-                                                                                            ).distinct()
+    projectList = Project_User.objects.filter(user=thisUserId).values_list("project__status",
+                                                                           "project__name",
+                                                                           "project__id",
+                                                                           "project__addTime"
+                                                                           ).distinct()
     print(projectList)
     # for obj in projectList:
     #     print(obj)
@@ -52,17 +81,17 @@ def getTasksFromTheProject(request):
     projectName = "汽车电子系统制造工程"
     projectId = request.GET.get("projectId")
     print(projectId)
-    TaskList = Task.objects.filter(project=projectId).values()
+    TaskList = Task_Project.objects.filter(project=projectId).values("task__id", "task__name", "task__status",
+                                                                     "task__leftSon",
+                                                                     "task__rightBrother")
     userList = []
     applierList = []
     # 下面是默认两个阶段，每个阶段有若干个任务
-
-    # print(list(models.Task_User.objects.filter(taskId=18).values("userId__username")))
-
+    # print(list(Task_User.objects.filter(task_id=18).values("user__username")))
     for task in TaskList:
-        applierList.append(list(Task_User.objects.filter(task=task['id']).values("userId__username")))
+        applierList.append(list(Task_User.objects.filter(task_id=task['task__id']).values("user__username")))
     TaskList = list(TaskList)
-    print(TaskList)
+    # print(TaskList)
     for i in range(len(TaskList)):
         TaskList[i]['username'] = applierList[i]
     print(applierList)
@@ -70,11 +99,12 @@ def getTasksFromTheProject(request):
     return respondDataToFront(TaskList)
 
 
+@csrf_exempt
 def saveTask(request):
     taskName = "阶段一任务一"
-    taskType = 1  # 表示当前任务处于第几阶段
+    taskType = 1  # 表示当前任务的类型
     dic = request.POST.get("userIdProcedureMap")
-    print(dic[2])
+    # print(dic[2])
     print(request.POST.get("taskName"))
     print("这里是用户列表")
     userIdProcedureMap = {2: 1, 3: 2, 4: 3, 1: 4}  # 前端传递的用户项目
@@ -83,8 +113,10 @@ def saveTask(request):
     # models.task.objects.create(name=projectName, status=0, addTime=datetime.datetime.now())
 
     # 1保存当前任务(互斥锁需要)
-    Task.objects.create(project=pId, number=0, name=taskName,  type=taskType)
+    Task.objects.create(name=taskName, type=taskType)
     task = Task.objects.last()
+    print(task.id)
+    Task_Project.objects.create(project=project, task=task, number=0, addTime=datetime.datetime.now())
 
     # 2保存当前项目下的人员分工（互斥锁）
     for key in userIdProcedureMap.keys():
@@ -94,7 +126,7 @@ def saveTask(request):
     # 3保存当前任务下的人员分工(这个地方需要加锁)
     for key, value in userIdProcedureMap.items():
         userInfor = User.objects.get(id=key)
-        Task_User.objects.create(task=task, user=userInfor, step=value)
+        Task_User.objects.create(task=task, user=userInfor, addTime=datetime.datetime.now())
     return HttpResponse("成功")
 
 

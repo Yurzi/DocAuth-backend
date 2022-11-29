@@ -1,5 +1,7 @@
 from django.db import models
 from apps.rbac.models import User
+
+
 # Create your models here.
 
 class Project(models.Model):
@@ -9,11 +11,12 @@ class Project(models.Model):
         ('f', '已完成'),
     )
     name = models.CharField(max_length=30, verbose_name="项目名")
-    desc = models.CharField(max_length=100, verbose_name="项目描述",blank=True,null=True)
+    desc = models.CharField(max_length=100, verbose_name="项目描述", blank=True, null=True)
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
-    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False, blank=False)
-    members = models.ManyToManyField(User, verbose_name='项目成员',through='Project_User')
-    REQUIRED_FIELDS: list[str] = [ 'name']
+    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False,
+                              blank=False)
+    members = models.ManyToManyField(User, verbose_name='项目成员', through='Project_User')
+    REQUIRED_FIELDS: list[str] = ['name']
 
     class Meta:
         verbose_name = "项目信息"
@@ -22,6 +25,7 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Task(models.Model):
     STATUS_CHOICES = (
@@ -43,9 +47,12 @@ class Task(models.Model):
     desc = models.CharField(max_length=100, verbose_name="任务描述", default="")
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
     status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r')
-    step = models.IntegerField(verbose_name="当前步骤", choices=STEP_CHOICES,default=1)
-    type = models.IntegerField(verbose_name="类型",  choices=TYPE_CHOICES)
-    REQUIRED_FIELDS: list[str] = [ 'name','type']
+    step = models.IntegerField(verbose_name="当前步骤", choices=STEP_CHOICES, default=1)
+    type = models.IntegerField(verbose_name="类型", choices=TYPE_CHOICES)
+    leftSon = models.IntegerField(verbose_name="左儿子结点", default=0)
+    rightBrother = models.IntegerField(verbose_name="右兄弟结点", default=0)
+    phase = models.IntegerField(verbose_name="任务阶段", default=0)
+    REQUIRED_FIELDS: list[str] = ['name', 'type']
 
     class Meta:
         verbose_name = "任务信息"
@@ -55,9 +62,10 @@ class Task(models.Model):
     def __str__(self):
         return self.name
 
+
 class Article(models.Model):
     task = models.ForeignKey(Task, verbose_name="任务", on_delete=models.CASCADE, null=False, blank=False)
-    content = models.TextField(max_length=50000, verbose_name="文章内容",default="")
+    content = models.TextField(max_length=50000, verbose_name="文章内容", default="")
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
 
     class Meta:
@@ -84,7 +92,7 @@ class Record(models.Model):
     type = models.IntegerField(verbose_name='Type (*)', choices=TYPE_CHOICES)
     content = models.TextField(max_length=5000, verbose_name="记录内容")
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
-    REQUIRED_FIELDS: list[str] = [ 'name','type']
+    REQUIRED_FIELDS: list[str] = ['name', 'type']
 
     class Meta:
         verbose_name = "记录信息"
@@ -93,6 +101,7 @@ class Record(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Project_User(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
@@ -107,13 +116,13 @@ class Project_User(models.Model):
     def __str__(self):
         return self.user.name + " with " + self.project.name
 
+
 class Task_Project(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, verbose_name="任务")
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="项目")
     number = models.IntegerField(verbose_name="是项目的第几个任务")
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
-    REQUIRED_FIELDS: list[str] = [ 'number']
-
+    REQUIRED_FIELDS: list[str] = ['number']
 
     class Meta:
         verbose_name = "项目任务关系"
@@ -122,6 +131,7 @@ class Task_Project(models.Model):
 
     def __str__(self):
         return self.project.name + " with " + self.task.name
+
 
 class Task_User(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, verbose_name="任务")

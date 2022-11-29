@@ -8,4 +8,5 @@ urlpatterns = [
     path('saveTask', views.saveTask),
     path('getTasksFromTheProject', views.getTasksFromTheProject),
     path('getThisUserProjectList', views.getThisUserProjectList),
+    path('newProject', views.newProject),
 ]
