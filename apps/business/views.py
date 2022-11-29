@@ -119,7 +119,7 @@ def saveTask(request):
     dic = request.POST.get("userIdProcedureMap")
     # print(dic[2])
     print(request.POST.get("taskName"))
-    print("这里是用户列表")
+    print("这里是用户列表1111")
     userIdProcedureMap = {2: 1, 3: 2, 4: 3, 1: 4}  # 前端传递的用户项目
     pId = 1  # 由前端将数据传递过来
     project = Project.objects.get(id=pId)
