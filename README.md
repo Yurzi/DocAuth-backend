@@ -36,3 +36,11 @@ CREATE DATABASE doc_auth;
 python manage.py runserver
 ```
 
+
+### 如何创建app
+
+在创建app时使用以下命令进行
+
+```shell
+python manage.py startapp apps/<app_name>
+```
