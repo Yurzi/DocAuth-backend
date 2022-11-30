@@ -62,7 +62,7 @@ class Api(models.Model):
         ("d", "开发中"),
     )
     name = models.CharField(max_length=30, verbose_name="接口名")
-    path = models.CharField(max_length=30, verbose_name="接口路径")
+    path = models.CharField(max_length=30, verbose_name="接口路径", unique=True)
     addTime = models.DateTimeField(verbose_name="添加时间", auto_now_add=True)
     status = models.CharField(
         verbose_name="Status (*)",
@@ -160,7 +160,7 @@ class Role_User(models.Model):
         ordering = ["user"]
 
     def __str__(self):
-        return self.user.name + " with " + self.role.name
+        return self.user.username + " with " + self.role.name
 
 
 class Role_Page(models.Model):
@@ -201,7 +201,7 @@ class User_Function(models.Model):
         ordering = ["user"]
 
     def __str__(self):
-        return self.user.name + " with " + self.function.name
+        return self.user.username + " with " + self.function.name
 
 class Role_Function(models.Model):
     role = models.ForeignKey(Role, on_delete=models.CASCADE, verbose_name="角色", related_name="functions")
