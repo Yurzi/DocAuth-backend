@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from .models import Api, User, Function
+from .models import Api, Function, User
 
 
 def union_permissions(queryset_1, queryset_2):
@@ -41,16 +41,29 @@ class GeneralPermission(permissions.BasePermission):
         if api_obj is None:
             return False
 
-        api_required_functions = api_obj.required_functions.all().values_list("function_id", flat=True)
+        api_required_functions = api_obj.required_functions.all().values_list(
+            "function_id", flat=True
+        )
 
         # 获取用户到权限
         # print(request.user.username)
 
-        user_has_role_permissions = User.objects.filter(username=request.user.username).first().roles.all().values_list(
-            "role__functions__function_id", flat=True)
-        user_has_spec_permissions = User.objects.filter(
-            username=request.user.username).first().functions.all().values_list("function_id", flat=True)
-        user_has_permissions = union_permissions(user_has_role_permissions, user_has_spec_permissions)
+        user_has_role_permissions = (
+            User.objects.filter(username=request.user.username)
+            .first()
+            .roles.all()
+            .values_list("role__functions__function_id", flat=True)
+        )
+        user_has_spec_permissions = (
+            User.objects.filter(username=request.user.username)
+            .first()
+            .functions.all()
+            .values_list("function_id", flat=True)
+        )
+        # print(user_has_spec_permissions)
+        user_has_permissions = union_permissions(
+            user_has_role_permissions, user_has_spec_permissions
+        )
         user_has_permissions = filter_permission_by_status(user_has_permissions)
 
         # print(user_has_permissions[0])
