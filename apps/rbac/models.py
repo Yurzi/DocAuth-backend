@@ -232,6 +232,8 @@ class Role_Function(models.Model):
 
 
 class Api_Function(models.Model):
+    TYPE_CHOICES = (("r", "读"), ("w", "写"), ("a", "读写"))
+
     api = models.ForeignKey(
         Api,
         on_delete=models.CASCADE,
@@ -244,6 +246,15 @@ class Api_Function(models.Model):
         verbose_name="功能",
         related_name="related_apis",
     )
+    type = models.CharField(
+        verbose_name="Status (*)",
+        max_length=1,
+        choices=TYPE_CHOICES,
+        default="a",
+        null=False,
+        blank=False,
+    )
+
     addTime = models.DateTimeField(verbose_name="添加时间", auto_now_add=True)
 
     class Meta:
