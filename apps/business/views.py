@@ -133,6 +133,7 @@ def orm(request):
 
     return HttpResponse("成功")
 #Project序列化器
+#---------------------
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
@@ -149,31 +150,31 @@ class ArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = '__all__'
-        read_only_fields = ('addTime')
+        read_only_fields = ('addTime',)
 #Record序列化器
 class RecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = Record
         fields = '__all__'
-        read_only_fields = ('addTime')
+        read_only_fields = ('addTime',)
 #Project_User序列化器
 class Project_UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project_User
         fields = '__all__'
-        read_only_fields = ('addTime')
+        read_only_fields = ('addTime',)
 #Task_Project序列化器
 class Task_ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task_Project
         fields = '__all__'
-        read_only_fields = ('addTime')
-#Task_Project序列化器
+        read_only_fields = ('addTime',)
+#Task_User序列化器
 class Task_UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task_User
         fields = '__all__'
-        read_only_fields = ('addTime')
+        read_only_fields = ('addTime',)
 #Project的增删改查接口类
 class ProjectView(views.APIView):
     def get(self,request):
@@ -384,11 +385,12 @@ class Task_ProjectdetailView(views.APIView):
             raise Http404
     def get(self,request,id):
         task_Project = self.get_object(pk = id)
+        print(task_Project)
         serializer = Task_ProjectSerializer(instance=task_Project,many = False)
         return Response(serializer.data)
     def put(self,request,id):
-        update_Project_User = self.get_object(pk = id)
-        serializer = Task_ProjectSerializer(instance=update_Project_User,data=request.data)
+        update_Task_Project = self.get_object(pk = id)
+        serializer = Task_ProjectSerializer(instance=update_Task_Project,data=request.data)
         if serializer.is_valid():
             #Project.objects.filter(pk=id).update(**serializer.validated_data)
             serializer.save()
