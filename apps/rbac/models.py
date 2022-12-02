@@ -246,7 +246,7 @@ class Api_Function(models.Model):
         verbose_name="功能",
         related_name="related_apis",
     )
-    type = models.CharField(
+    rw_type = models.CharField(
         verbose_name="Status (*)",
         max_length=1,
         choices=TYPE_CHOICES,
