@@ -1,9 +1,12 @@
+from django.db.models import QuerySet
 from rest_framework import permissions
 
-from .models import Api, Function, User
+from .models import Api, Api_Function, Function, User
 
 
-def union_permissions(queryset_1, queryset_2):
+def union_permissions(
+    queryset_1: list[int] | QuerySet, queryset_2: list[int] | QuerySet
+) -> list[int]:
     res = set()
     for item in queryset_1:
         res.add(item)
@@ -13,12 +16,23 @@ def union_permissions(queryset_1, queryset_2):
     return list(res)
 
 
-def filter_permission_by_status(permissions_list: list[int]):
+def filter_permission_by_status(permissions_list: list[int] | QuerySet) -> list[int]:
     res = list()
     for permission in permissions_list:
         permission_obj = Function.objects.filter(id=permission).first()
         if permission_obj.status != Function.STATUS_CHOICES[0][0]:
-            print(permission_obj.status)
+            # print(permission_obj.status)
+            res.append(permission)
+    return res
+
+
+def filter_permission_by_type(
+    permissions_list: list[int] | QuerySet, rw_type: list[str]
+) -> list[int]:
+    res = list()
+    for permission in permissions_list:
+        permission_obj = Function.objects.filter(id=permission).first()
+        if permission_obj.rw_type in rw_type:
             res.append(permission)
     return res
 
@@ -26,7 +40,7 @@ def filter_permission_by_status(permissions_list: list[int]):
 class GeneralPermission(permissions.BasePermission):
     message = "You have not permissions to do this!"
 
-    def has_permission(self, request, view):
+    def has_permission(self, request, view) -> bool:
         # 检查是否已经登录
         if request.auth is None:
             return False
@@ -44,6 +58,14 @@ class GeneralPermission(permissions.BasePermission):
         api_required_functions = api_obj.required_functions.all().values_list(
             "function_id", flat=True
         )
+        if request.methond in permissions.SAFE_METHODS:
+            api_required_functions = filter_permission_by_type(
+                api_required_functions, ["r", "a"]
+            )
+        else:
+            api_required_functions = filter_permission_by_type(
+                api_required_functions, ["w", "a"]
+            )
 
         # 获取用户到权限
         # print(request.user.username)
@@ -68,7 +90,7 @@ class GeneralPermission(permissions.BasePermission):
 
         # print(user_has_permissions[0])
 
-        # 检车权限
+        # 检验权限
         check_status = False
         for required in api_required_functions:
             if required in user_has_permissions:
