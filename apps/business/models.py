@@ -134,9 +134,17 @@ class Task_Project(models.Model):
 
 
 class Task_User(models.Model):
+    TYPE_CHOICES = (
+        (1, '编撰'),
+        (2, '审阅'),
+        (3, '批阅'),
+        (4, '汇签'),
+        (5, '打回'),
+    )
     task = models.ForeignKey(Task, on_delete=models.CASCADE, verbose_name="任务")
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+    type = models.IntegerField(verbose_name='Type (*)', choices=TYPE_CHOICES)
 
     class Meta:
         verbose_name = "用户任务关系"
