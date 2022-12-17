@@ -46,6 +46,8 @@ class Task(models.Model):
     name = models.CharField(max_length=30, verbose_name="任务名")
     desc = models.CharField(max_length=100, verbose_name="任务描述", default="")
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+    startTime = models.DateTimeField(verbose_name='任务预定开始时间')
+    deadLine = models.DateTimeField(verbose_name="任务预定截止时间")
     status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r')
     step = models.IntegerField(verbose_name="当前步骤", choices=STEP_CHOICES, default=1)
     type = models.IntegerField(verbose_name="类型", choices=TYPE_CHOICES)
@@ -134,9 +136,18 @@ class Task_Project(models.Model):
 
 
 class Task_User(models.Model):
+    TYPE_CHOICES = (
+        (1, '编撰'),
+        (2, '审阅'),
+        (3, '批阅'),
+        (4, '汇签1'),
+        (5, '汇签2'),
+        (6, '打回'),
+    )
     task = models.ForeignKey(Task, on_delete=models.CASCADE, verbose_name="任务")
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+    type = models.IntegerField(verbose_name='Type (*)', choices=TYPE_CHOICES)
 
     class Meta:
         verbose_name = "用户任务关系"
