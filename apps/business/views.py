@@ -97,27 +97,43 @@ def getTasksFromTheProject(request):
     projectId = request.GET.get("projectId")
     print(projectId)
     phases = 2
-    projectInfo = {}
+    # projectInfo = {}
+    phaseList = []
     # 假定现在就两个阶段
-    for phase in range(phases):
-        TaskList = Task_Project.objects.filter(project=projectId,task__phase=(phase+1)).values("task__id", "task__name", "task__status",
-                                                                     "task__thisId",
-                                                                     "task__thisFarther",
-                                                                     "task__phase")
+    for phase in range(1,phases+1):
+        TaskList = Task_Project.objects.filter(project=projectId,task__phase=(phase)).values(  "task__id",
+                                                                                               "task__name",
+                                                                                               "task__status",
+                                                                                               "task__thisId",
+                                                                                               "task__thisFarther",
+                                                                                               "task__phase",
+                                                                                               "task__phase",
+                                                                                               "task__desc",
+                                                                                               "task__deadLine",
+                                                                                               "task__startTime")
+        phaseItem = {}
+        phaseItem["phaseName"] = "Phase "+ str(phase + 2)
+        phaseItem["task__number"] = len(TaskList)
         userList = []
         applierList = []
         # 下面是默认两个阶段，每个阶段有若干个任务
         for task in TaskList:
-            applierList.append(list(Task_User.objects.filter(task_id=task['task__id']).values("user__username")))
+            applierList.append(list(Task_User.objects.filter(task_id=task['task__id']).values("user__username" ,"type")))
         TaskList = list(TaskList)
         for i in range(len(TaskList)):
-            TaskList[i]['username'] = applierList[i]
+            TaskList[i]['AssignedPersons'] = applierList[i]
         # print(applierList)
         # print(TaskList)
-        projectInfo["phase"+str(phase+1)] = TaskList
-        projectInfo["phase"+str(phase+1)+"Number"] = len(TaskList)
-    print(projectInfo)
-    return respondDataToFront(projectInfo)
+        phaseItem["phaseTasks"] = TaskList
+        phaseList.append(phaseItem)
+
+        # projectInfo["phase"+str(phase)] = TaskList
+        # projectInfo["phase"+str(phase)+"Number"] = len(TaskList)
+
+    for item in phaseList:
+        print(item)
+    # print(phaseList)
+    return respondDataToFront(phaseList)
 
 
 @csrf_exempt
