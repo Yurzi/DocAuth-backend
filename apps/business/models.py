@@ -87,11 +87,17 @@ class Record(models.Model):
         (4, '汇签'),
         (5, '打回'),
     )
+    STATUS_CHOICES = (
+        (1, '审核中'),
+        (2, '未通过'),
+        (3, '通过'),
+    )
     project = models.ForeignKey(Project, verbose_name="项目", on_delete=models.CASCADE, null=False, blank=False)
     task = models.ForeignKey(Task, verbose_name="任务", on_delete=models.CASCADE, null=False, blank=False)
     user = models.ForeignKey(User, verbose_name="执行者", on_delete=models.CASCADE, null=False, blank=False)
     name = models.CharField(max_length=30, verbose_name="记录名")
     type = models.IntegerField(verbose_name='Type (*)', choices=TYPE_CHOICES)
+    type = models.IntegerField(verbose_name='Status (*)', choices=STATUS_CHOICES)
     content = models.TextField(max_length=5000, verbose_name="记录内容")
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
     REQUIRED_FIELDS: list[str] = ['name', 'type']
@@ -140,9 +146,7 @@ class Task_User(models.Model):
         (1, '编撰'),
         (2, '审阅'),
         (3, '批阅'),
-        (4, '汇签1'),
-        (5, '汇签2'),
-        (6, '打回'),
+        (4, '汇签'),
     )
     task = models.ForeignKey(Task, on_delete=models.CASCADE, verbose_name="任务")
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
