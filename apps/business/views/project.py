@@ -6,8 +6,8 @@ import json
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
 
-from ..rbac.models import User
-from .models import Project, Task, Task_User, Project_User, Task_Project
+from ...rbac.models import User
+from ..models import Project, Task, Task_User, Project_User, Task_Project
 import datetime
 
 

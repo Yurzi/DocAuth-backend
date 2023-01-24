@@ -1,12 +1,12 @@
 from django.urls import path
 
-from . import views
+from .views import project
 
 urlpatterns = [
-    path('test', views.test),
-    path('saveProject', views.saveProject),
-    path('saveTask', views.saveTask),
-    path('getTasksFromTheProject', views.getTasksFromTheProject),
-    path('getThisUserProjectList', views.getThisUserProjectList),
-    path('newProject', views.newProject),
+    path('/test/', project.test),
+    path('/saveProject/', project.saveProject),
+    path('/saveTask/', project.saveTask),
+    path('/getTasksFromTheProject/', project.getTasksFromTheProject),
+    path('/getThisUserProjectList/', project.getThisUserProjectList),
+    path('/newProject/', project.newProject),
 ]
