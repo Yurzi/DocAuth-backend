@@ -52,7 +52,7 @@ class Task(models.Model):
     startTime = models.DateTimeField(verbose_name='任务预定开始时间', auto_now_add=True)
     deadLine = models.DateTimeField(verbose_name="任务预定截止时间", auto_now_add=True)
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
-    REQUIRED_FIELDS: list[str] = ['name','members','project']
+    REQUIRED_FIELDS: list[str] = ['name', 'members', 'project']
 
     class Meta:
         verbose_name = "任务信息"
@@ -121,6 +121,7 @@ class Project_User(models.Model):
 
     def __str__(self):
         return self.user.name + " with " + self.project.name
+
 
 class Task_User(models.Model):
     TYPE_CHOICES = (
