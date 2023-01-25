@@ -12,10 +12,10 @@ class Project(models.Model):
     )
     name = models.CharField(max_length=30, verbose_name="项目名")
     desc = models.CharField(max_length=100, verbose_name="项目描述", blank=True, null=True)
-    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
     status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False,
                               blank=False)
     members = models.ManyToManyField(User, verbose_name='项目成员', through='Project_User')
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
     REQUIRED_FIELDS: list[str] = ['name']
 
     class Meta:
@@ -48,11 +48,11 @@ class Task(models.Model):
     thisFarther = models.IntegerField(verbose_name="在某一阶段中此任务的父结点id", default=0)
     phase = models.IntegerField(verbose_name="任务阶段", default=0)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name="项目")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    members = models.ManyToManyField(User, verbose_name='项目成员', through='Task_User')
     startTime = models.DateTimeField(verbose_name='任务预定开始时间', auto_now_add=True)
     deadLine = models.DateTimeField(verbose_name="任务预定截止时间", auto_now_add=True)
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
-    REQUIRED_FIELDS: list[str] = ['name', 'type']
+    REQUIRED_FIELDS: list[str] = ['name','members','project']
 
     class Meta:
         verbose_name = "任务信息"
@@ -121,3 +121,23 @@ class Project_User(models.Model):
 
     def __str__(self):
         return self.user.name + " with " + self.project.name
+
+class Task_User(models.Model):
+    TYPE_CHOICES = (
+        (1, '编撰'),
+        (2, '审阅'),
+        (3, '批阅'),
+        (4, '汇签'),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, verbose_name="任务")
+    duty = models.IntegerField(verbose_name='Type (*)', choices=TYPE_CHOICES)
+    addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = "用户任务关系"
+        verbose_name_plural = verbose_name
+        ordering = ['user']
+
+    def __str__(self):
+        return self.user.name + " with " + self.task.name
