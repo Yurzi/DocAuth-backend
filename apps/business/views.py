@@ -21,6 +21,7 @@ def respondDataToFront(preData):
     print("完成发送任务")
     return JsonResponse(data=data, safe=False)
 
+
 @csrf_exempt
 def newProject(request):
     data = json.loads(request.body)
@@ -37,45 +38,45 @@ def newProject(request):
 def saveProject(request):
     data = json.loads(request.body)
     print(data)
-    phaseList = []
-    phase1 = data["phase1"]
-    phase2 = data["phase2"]
-    phaseList.append(phase1)
-    phaseList.append(phase2)
+    phaseList = data["phases"]
+    # 这个地方需要协商
+    # lastProject = Project.objects.last()
+    # projectId = lastProject.id +1
     projectId = data["projectId"]
-    print(phase1)
     print(projectId)
-
-    # 这样的话，多线程后面要加互斥锁
-    # 取数据库中最后一个元组的id
+    #
+    # # 这样的话，多线程后面要加互斥锁
+    # # 取数据库中最后一个元组的id
     task = Task.objects.last()
     project = Project.objects.get(id=projectId)
     initialId = task.id + 1
-    # initialId = 1
+    print(initialId)
+    initialId = 92
     print(initialId)
     ct = 1
-    for phase in phaseList :
+    for phase in phaseList:
         for task in phase:
-            ls = task['thisid']
-            rb = task['thisFarther']
-            # if int(task['leftSon']) != 0 :
-            #     ls = int(task['leftSon']) + initialId
-            # if int(task['rightBrother']) != 0 :
-            #     rb = int(task['rightBrother']) + initialId
+            print(1)
+            ls = task['thisId']
+            rb = task['fatherID']
             tmp = Task.objects.create(name=task["name"], desc="00", addTime=datetime.datetime.now(), type=1,
                                       thisId=ls,
-                                      thisFarther=rb, phase=ct)
+                                      thisFarther=rb, phase=ct,
+                                      startTime=datetime.datetime.now(),
+                                      deadLine=datetime.datetime.now())
             # 将task和project一一关联起来
             Task_Project.objects.create(task=tmp, project=project, number=1, addTime=datetime.datetime.now())
-            #将task和user,project和user一一关联起来
+            # 将task和user,project和user一一关联起来
+            currentType = 0
             for obj in task['staffs']:
+                currentType += 1
                 user = User.objects.get(pk=obj)
-                Task_User.objects.create(task=tmp,user=user,addTime=datetime.datetime.now())
-                if  not Project_User.objects.filter(user_id=obj, project_id=projectId).exists():
-                    Project_User.objects.create(project=project,user=user,addTime=datetime.datetime.now())
+                Task_User.objects.create(task=tmp, user=user, addTime=datetime.datetime.now(),type=currentType)
+                if not Project_User.objects.filter(user_id=obj, project_id=projectId).exists():
+                    Project_User.objects.create(project=project, user=user, addTime=datetime.datetime.now())
         ct += 1
-        # initialId += ct
-    return HttpResponse("成功")
+        initialId += ct
+    return respondDataToFront("成功")
 
 
 # 根据用户id得到该用户所参加的所有项目列表
@@ -83,10 +84,10 @@ def getThisUserProjectList(request):
     thisUserId = request.GET.get("userId")
     print(thisUserId)
     projectList = Project_User.objects.filter(user=thisUserId).values("project__status",
-                                                                           "project__name",
-                                                                           "project__id",
-                                                                           "project__addTime"
-                                                                           ).distinct()
+                                                                      "project__name",
+                                                                      "project__id",
+                                                                      "project__addTime"
+                                                                      ).distinct()
     print(projectList)
     return respondDataToFront(list(projectList))
 
@@ -100,25 +101,26 @@ def getTasksFromTheProject(request):
     # projectInfo = {}
     phaseList = []
     # 假定现在就两个阶段
-    for phase in range(1,phases+1):
-        TaskList = Task_Project.objects.filter(project=projectId,task__phase=(phase)).values(  "task__id",
-                                                                                               "task__name",
-                                                                                               "task__status",
-                                                                                               "task__thisId",
-                                                                                               "task__thisFarther",
-                                                                                               "task__phase",
-                                                                                               "task__phase",
-                                                                                               "task__desc",
-                                                                                               "task__deadLine",
-                                                                                               "task__startTime")
+    for phase in range(1, phases + 1):
+        TaskList = Task_Project.objects.filter(project=projectId, task__phase=phase).values("task__id",
+                                                                                              "task__name",
+                                                                                              "task__status",
+                                                                                              "task__thisId",
+                                                                                              "task__thisFarther",
+                                                                                              "task__phase",
+                                                                                              "task__phase",
+                                                                                              "task__desc",
+                                                                                              "task__deadLine",
+                                                                                              "task__startTime")
         phaseItem = {}
-        phaseItem["phaseName"] = "Phase "+ str(phase + 2)
+        phaseItem["phaseName"] = "Phase " + str(phase + 2)
         phaseItem["task__number"] = len(TaskList)
         userList = []
         applierList = []
         # 下面是默认两个阶段，每个阶段有若干个任务
         for task in TaskList:
-            applierList.append(list(Task_User.objects.filter(task_id=task['task__id']).values("user__username" ,"type")))
+            applierList.append(
+                list(Task_User.objects.filter(task_id=task['task__id']).values("user__username", "type")))
         TaskList = list(TaskList)
         for i in range(len(TaskList)):
             TaskList[i]['AssignedPersons'] = applierList[i]
@@ -166,6 +168,7 @@ def saveTask(request):
         Task_User.objects.create(task=task, user=userInfor, addTime=datetime.datetime.now())
     return HttpResponse("成功")
 
+
 def test(request):
     projectId = 1
     m = list(Project.objects.all().values())
@@ -180,6 +183,7 @@ def test(request):
     #     print(obj)
 
     # return HttpResponse("成功")
+
 
 def orm(request):
     # models.UserInfo.objects.create(name= "ws1",passWord="123",age = 19)
