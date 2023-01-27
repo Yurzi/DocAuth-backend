@@ -19,7 +19,11 @@ class TaskView(APIView):
   def get(self, request:request.Request, pk, format=None):
     '''获取任务列表'''
     searchObj = getSearchObject(request.query_params,['user','project'])
-    tasks = Task.objects.filter(**searchObj)
+    tasks = Task.objects.all()
+    if 'user' in searchObj:
+      tasks = tasks.filter(members__id=searchObj['user'])
+    if 'project' in searchObj:
+      tasks = tasks.filter(project=searchObj['project'])
     serializer = TaskSerializer(tasks, many=True)
     return CustomResponse(data=serializer.data, status=status.HTTP_200_OK, message="获取任务列表成功")
 
