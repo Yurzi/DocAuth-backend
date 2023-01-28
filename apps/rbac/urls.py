@@ -3,10 +3,10 @@ from .views.user import UserListView, UserDetailView, UserRegisterView, login
 
 
 urlpatterns = [
-    path('/user/',
+    path('/user',
          UserRegisterView.as_view(), name='user_create'),
-    path('/user/<int:pk>/',
+    path('/user/<int:pk>',
          UserDetailView.as_view(), name='user_detail'),
-    path('/user/list/', UserListView.as_view(), name='user_list'),
-    path('/user/login/', login, name='user_login'),
+    path('/user/list', UserListView.as_view(), name='user_list'),
+    path('/user/login', login, name='user_login'),
 ]

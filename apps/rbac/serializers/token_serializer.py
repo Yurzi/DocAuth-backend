@@ -9,5 +9,6 @@ class CustomObtainPairSerializer(TokenObtainPairSerializer):
 
         # 添加额外信息
         token['username'] = user.username
+        token['id'] = user.pk
         return token
     
