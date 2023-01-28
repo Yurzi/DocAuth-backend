@@ -12,4 +12,5 @@ urlpatterns = [
     path('/user/login/', login, name='user_login'),
     #path('/test/', test, name='test'),
     path('/permission/role/delfunction/',Role_FunctionView.as_view()),
+    path('/permission/role/updfunction/',Role_FunctionView.as_view())
 ]
