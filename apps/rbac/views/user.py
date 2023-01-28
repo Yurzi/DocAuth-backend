@@ -67,12 +67,14 @@ class UserRegisterView(CreateAPIView):
         headers = self.get_success_headers(serializer.data)
         return CustomResponse(data=None, status=status.HTTP_201_CREATED, headers=headers, message="注册成功")
 
-def getSearchObject(query,queries:list[str]):
-  res = {}
-  for key in queries:
-    if key in query:
-      res[key] = query[key]
-  return res
+
+def getSearchObject(query, queries: list[str]):
+    res = {}
+    for key in queries:
+        if key in query:
+            res[key] = query[key]
+    return res
+
 
 class UserListView(ListAPIView):
     queryset = User.objects.all()
@@ -81,7 +83,7 @@ class UserListView(ListAPIView):
     ordering_fields = ('id',)
 
     def get_queryset(self):
-        searchObj = getSearchObject(self.request.query_params,['username','name','phone'])
+        searchObj = getSearchObject(self.request.query_params, ['username', 'name', 'phone'])
         queryset = self.queryset.filter(**searchObj)
         return queryset
 
