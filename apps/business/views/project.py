@@ -48,11 +48,14 @@ def saveProject(request):
     # # 这样的话，多线程后面要加互斥锁
     # # 取数据库中最后一个元组的id
     task = Task.objects.last()
+
+    # 根据id得到当前项目
     project = Project.objects.get(id=projectId)
-    initialId = task.id + 1
-    print(initialId)
-    initialId = 92
-    print(initialId)
+
+    # initialId = task.id + 1
+    # print(initialId)
+    # initialId = 92
+    # print(initialId)
     ct = 1
     for phase in phaseList:
         for task in phase:
@@ -70,12 +73,36 @@ def saveProject(request):
             for obj in task['staffs']:
                 currentType += 1
                 user = User.objects.get(pk=obj)
-                Task_User.objects.create(task=tmp, user=user, addTime=datetime.datetime.now(),duty=currentType)
+                Task_User.objects.create(task=tmp, user=user, addTime=datetime.datetime.now(), duty=currentType)
                 if not Project_User.objects.filter(user_id=obj, project_id=projectId).exists():
                     Project_User.objects.create(project=project, user=user, addTime=datetime.datetime.now())
         ct += 1
-        initialId += ct
+        # initialId += ct
     return respondDataToFront("成功")
+
+
+# 根据当前taskid,更新有关该task所有信息
+def saveTask(request):
+    data = json.loads(request.body)
+    print(data)
+    currentTaskId = data["id"]
+    staffs = data["staffs"]
+    print(staffs)
+    # 删除数据库task_user表中与当前task相关的所有user
+    Task_User.objects.filter(task_id=currentTaskId).delete()
+    # 用新数据更新task表以及在task_user新增重新分配的user关系字段
+    Task.objects.filter(id=currentTaskId).update(name=data["name"], startTime=data["startTime"],
+                                                 deadLine=data["deadLine"], desc=data["desc"])
+    duty = 1
+    taskTmp = Task.objects.get(pk=data["id"])
+
+    for staff in staffs:
+        userTmp = User.objects.get(pk=staff)
+        Task_User.objects.create(addTime=datetime.datetime.now(), duty=duty, task=taskTmp, user=userTmp)
+        duty += 1
+    return respondDataToFront("成功")
+
+
 # 根据用户id得到该用户所参加的所有项目列表
 def getThisUserProjectList(request):
     thisUserId = request.GET.get("userId")
@@ -95,30 +122,32 @@ def getTasksFromTheProject(request):
     projectId = request.GET.get("projectId")
     currentProject = Project.objects.get(pk=projectId)
     print(projectId)
-    phases = 2
+    print(currentProject.phaseNumber)
+    phases = currentProject.phaseNumber
+    # phases = 2
     # projectInfo = {}
     phaseList = []
-    # 假定现在就两个阶段
+
     for phase in range(1, phases + 1):
         TaskList = Task.objects.filter(project=currentProject, phase=phase).values(
-                                                                                   "id",
-                                                                                   "name",
-                                                                                   "status",
-                                                                                   "thisId",
-                                                                                   "thisFarther",
-                                                                                   "phase",
-                                                                                   "desc",
-                                                                                   "deadLine",
-                                                                                   "startTime")
+            "id",
+            "name",
+            "status",
+            "thisId",
+            "thisFarther",
+            "phase",
+            "desc",
+            "deadLine",
+            "startTime")
         phaseItem = {}
-        phaseItem["phaseName"] = "Phase " + str(phase + 2)
+        phaseItem["phaseName"] = "Phase " + str(phase)
         phaseItem["task__number"] = len(TaskList)
         userList = []
         applierList = []
         # 下面是默认两个阶段，每个阶段有若干个任务
         for task in TaskList:
             applierList.append(
-                list(Task_User.objects.filter(task_id=task['id']).values("user__username", "duty")))
+                list(Task_User.objects.filter(task_id=task['id']).values("user_id", "user__username", "duty")))
         TaskList = list(TaskList)
         for i in range(len(TaskList)):
             TaskList[i]['AssignedPersons'] = applierList[i]
@@ -134,10 +163,3 @@ def getTasksFromTheProject(request):
         print(item)
     # print(phaseList)
     return respondDataToFront(phaseList)
-
-
-
-
-
-
-
