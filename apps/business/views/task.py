@@ -11,7 +11,7 @@ import uuid
 def getSearchObject(query,queries:list[str]):
   res = {}
   for key in queries:
-    if key in query:
+    if key in query and (query[key] != '' or query[key] != -1):
       res[key] = query[key]
   return res
 
@@ -27,16 +27,18 @@ class Task_UserListViews(ListAPIView):
 class TaskView(APIView):
   def get(self, request:request.Request, pk, format=None):
     '''获取某个task'''
-    task = Task.objects.get(pk=pk)
-    if(task is None):
-      raise CustomException(status_code=status.HTTP_404_NOT_FOUND, message="任务不存在")
+    try:
+      task = Task.objects.get(pk=pk)
+    except:
+      raise CustomException(status_code=status.HTTP_404_NOT_FOUND,code=404, message="任务不存在")
     serializer = TaskSerializer(task)
     return CustomResponse(data=serializer.data, status=status.HTTP_200_OK, message="获取任务成功")
 
   def put(self, request, pk, format=None):
     '''修改任务'''
-    task = Task.objects.get(pk=pk)
-    if(task is None):
+    try:
+      task = Task.objects.get(pk=pk)
+    except:
       raise CustomException(status_code=status.HTTP_404_NOT_FOUND, message="任务不存在")
     serializer = TaskSerializer(task, data=request.data)
     if serializer.is_valid():
@@ -57,21 +59,23 @@ class RecordListView(ListAPIView):
 class SubmitTaskView(CreateAPIView):
   def post(self, request, pk, format=None):
     '''提交任务某一个步骤'''
-    task = Task.objects.get(pk=pk)
-    if(task is None):
+    try:
+      task = Task.objects.get(pk=pk)
+    except:
       raise CustomException(status_code=status.HTTP_404_NOT_FOUND, message="任务不存在")
     if(task.status == 'f' or task.step >= 5):
       raise CustomException(status_code=status.HTTP_400_BAD_REQUEST, message="任务已经完成")
     step = task.step
-    Record.objects.filter(task=task, type=step).update(status='s')
+    Record.objects.filter(task=task, type=step,status='r').update(status='s')
     if not 'content' in request.data:
       raise CustomException(status_code=status.HTTP_400_BAD_REQUEST, message="内容不能为空")
-
-    user = User.objects.get(pk=request.data["user"])
-    if user is None:
+    
+    try:
+      user = User.objects.get(pk=request.data["user"])
+    except:
       raise CustomException(status_code=status.HTTP_404_NOT_FOUND, message="用户不存在")
 
-    Record.objects.create(task=task, user=user, content=request.data["content"],type=step,name=str(uuid.uuid3(uuid.NAMESPACE_DNS, 'python.org'))[:20],status='r',project=task.project)
+    Record.objects.create(task=task, user=user, content=request.data["content"],type=step,name=str(uuid.uuid3(uuid.NAMESPACE_DNS, 'python.org'))[-20:],status='r',project=task.project)
 
     task.step = task.step + 1
     task.save(force_update=True)
@@ -81,8 +85,9 @@ class SubmitTaskView(CreateAPIView):
 class FinishTaskView(CreateAPIView):
   def post(self, request, pk, format=None):
     '''完成任务'''
-    task = Task.objects.get(pk=request.data["task"])
-    if(task is None):
+    try:
+      task = Task.objects.get(pk=request.data["task"])
+    except:
       raise CustomException(status_code=status.HTTP_404_NOT_FOUND, message="任务不存在")
 
     Record.objects.filter(task=task, status='r').update(status='f')

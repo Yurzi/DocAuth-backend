@@ -9,6 +9,7 @@ class TaskSerializer(serializers.ModelSerializer):
     '''
     任务的序列化
     '''
+    project = serializers.CharField(source="project.name")
 
     def to_representation(self, instance):
         representation = super(TaskSerializer, self).to_representation(instance)
@@ -48,7 +49,7 @@ class RecordSerializer(serializers.ModelSerializer):
     '''
     记录的序列化
     '''
-    user = serializers.CharField(source="user.name")
+    user = serializers.CharField(source="user.username")
     project = serializers.CharField(source="project.name")
     task = serializers.CharField(source="task.name")
 

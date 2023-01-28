@@ -23,7 +23,6 @@ class CustomException(Exception):
 
 # 自定义错误处理
 def custom_exception_handler(exc, context):
-    response = exception_handler(exc, context)
     # 如果是自定义错误
     if isinstance(exc, CustomException):
         response = Response(
@@ -34,13 +33,13 @@ def custom_exception_handler(exc, context):
             },
             status=exc.status,
         )
-    elif response is not None:
+    else:
         response = Response(
             data={
-                "code": response.status_code,
-                'data':response.data,
+                "code": 400,
+                'data':str(exc),
             },
-            status=response.status_code,
+            status=400,
         )
     return response
 
