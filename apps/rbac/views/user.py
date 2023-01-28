@@ -8,6 +8,7 @@ from common.custom_exception import CustomException
 from rest_framework import status, request
 from ..utils import getTokensForUser
 
+from rest_framework import views
 
 class UserDetailView(RetrieveUpdateDestroyAPIView):
     '''
@@ -92,3 +93,17 @@ def login(request: request.Request, pk=None, format=None):
 
         res_data = {**getTokensForUser(user), 'id': user.pk}
         return CustomResponse(data=res_data, message="登录成功")
+
+
+
+
+class WsUserView(views.APIView):
+    def delete(self,request):
+        ids = request.query_params['ids']
+        ids = map(int,ids.split(','))
+
+        users = User.objects.filter(id__in = ids)
+        if users.exists():
+            users.delete()
+            #print(1223)
+        return CustomResponse(code=200,message='删除成功',data=None)
