@@ -14,6 +14,7 @@ class User(AbstractUser):
     phone = models.CharField(max_length=20, verbose_name="电话")
     password = models.CharField(max_length=100, verbose_name="密码")
     email = models.EmailField(verbose_name="邮箱", max_length=100, null=True, blank=True)
+    gender = models.CharField(max_length=5, verbose_name="性别",default="男")
     REQUIRED_FIELDS: list[str] = ['phone', 'password']
     USERNAME_FIELD = "username"
 
