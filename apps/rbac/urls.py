@@ -4,7 +4,7 @@ from .views.Role import Role_FunctionView,zqxR_F1View,zqx_RView,WRoleView
 from .views.RoleUser import wsRUView
 from .views.UserFunction import W_U_FView,W_U_FViewAll
 from apps.rbac.views.function import FunctionListView, FunctionDetailView
-from apps.rbac.views.api import ApiListView,ApiDetailView
+from apps.rbac.views.api import ApiListView,ApiDetailView,ApiFunctionView
 from apps.rbac.views.Role import Role_FunctionView, zqx_RView, zqxR_F1View
 from apps.rbac.views.user import (UserDetailView, UserListView,
                                   UserRegisterView, WsUserView, login)
@@ -43,4 +43,5 @@ urlpatterns = [
     # Api
     path("/permission/api", ApiListView.as_view()),
     path("/permission/api/status", ApiDetailView.as_view()),
+    path("/permission/api/function", ApiFunctionView.as_view())
 ]

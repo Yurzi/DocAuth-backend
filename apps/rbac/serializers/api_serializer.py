@@ -42,5 +42,7 @@ class ApiWithFunctionSerializer(serializers.ModelSerializer):
         data["required_functions"] = list()
         print(instance.required_functions.all())
         for function in instance.required_functions.all():
-            data["required_functions"].append(FunctionSerializer(instance=function.function).data)
+            item = FunctionSerializer(instance=function.function).data
+            item["rw_type"] = function.rw_type
+            data["required_functions"].append(item)
         return data
