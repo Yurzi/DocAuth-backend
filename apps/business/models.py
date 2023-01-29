@@ -32,6 +32,7 @@ class Task(models.Model):
     STATUS_CHOICES = (
         ('s', '暂停中'),
         ('r', '进行中'),
+        ('w', '待提交'),
         ('f', '已完成'),
     )
     STEP_CHOICES = (
@@ -39,7 +40,6 @@ class Task(models.Model):
         (2, '审阅中'),
         (3, '批阅中'),
         (4, '汇签中'),
-        (5, '已完成'),
     )
     name = models.CharField(max_length=30, verbose_name="任务名")
     desc = models.CharField(max_length=100, verbose_name="任务描述", default="")
