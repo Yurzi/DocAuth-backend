@@ -1,6 +1,7 @@
 from rest_framework.pagination import PageNumberPagination
 from common.custom_response import CustomResponse
 
+
 class StandardResultsSetPagination(PageNumberPagination):
     '''
     列表自定义分页

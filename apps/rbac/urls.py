@@ -4,15 +4,19 @@ from .views.user import UserListView, UserDetailView, UserRegisterView,WsUserVie
 from .views.Role import Role_FunctionView,zqxR_F1View,zqx_RView,WRoleView
 from .views.RoleUser import wsRUView
 from .views.UserFunction import W_U_FView,W_U_FViewAll
-
+from apps.rbac.views.function import FunctionListView
+from apps.rbac.views.Role import Role_FunctionView, zqx_RView, zqxR_F1View
+from apps.rbac.views.user import (UserDetailView, UserListView,
+                                  UserRegisterView, WsUserView, login)
 urlpatterns = [
-    path('/user/',
+    path('/user',
          UserRegisterView.as_view(), name='user_create'),
     path('/user/<int:pk>/',
          UserDetailView.as_view(), name='user_detail'),
     path('/user/list/', UserListView.as_view(), name='user_list'),
     path('/user/login/', login, name='user_login'),
     path('/user/ids/',WsUserView.as_view()),
+    
     path('/user/page/',WsUserView.as_view()),
     path('/user/upduser',WsUserView.as_view()),
     path('/permission/user/role/',wsRUView.as_view()),
@@ -30,5 +34,7 @@ urlpatterns = [
     path('/permission/role/listall/',WRoleView.as_view()),
     path('/permission/user/function/',W_U_FView.as_view()),
     path('/permission/user/function/all/',W_U_FViewAll.as_view()),
-
+    path("/permission/role", Role_FunctionView.as_view()),
+    ## Function
+    path("/permission", FunctionListView.as_view()),
 ]
