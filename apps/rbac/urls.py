@@ -15,5 +15,11 @@ urlpatterns = [
     path('/permission/role', Role_FunctionView.as_view()),
     path('/permission/role/updfunction/', Role_FunctionView.as_view()),
     path('/permisssion/role/list/', Role_FunctionView.as_view()),
+    path('/permission/role/add/',Role_FunctionView.as_view()),
+    path('/permission/role/oneRoleList/',zqxR_F1View.as_view()),
+    path('/permission/role/ids/',zqxR_F1View.as_view()),
+    path('/permission/role/upInfo/',zqxR_F1View.as_view()),
+    path('/permission/role/delOne/',zqx_RView.as_view()),
+    path('/permission/role/upstatus/',zqx_RView.as_view()),
 
 ]
