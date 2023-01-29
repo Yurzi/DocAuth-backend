@@ -3,9 +3,11 @@ from django.urls import path
 from .views import project,task
 
 urlpatterns = [
-    path('saveProject', project.saveProject),
-    path('getTasksFromTheProject', project.getTasksFromTheProject),
-    path('saveTask', project.saveTask),
+    path('/saveProject', project.saveProject),
+    path('/getTasksFromTheProject', project.getTasksFromTheProject),
+    path('/saveTask', project.saveTask),
+    path('/project/Info', project.getProjectInforById),
+
     path('/getThisUserProjectList/', project.getThisUserProjectList),
     path('/newProject/', project.newProject),
     path('/task/<int:pk>', task.TaskView.as_view()),

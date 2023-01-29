@@ -1,4 +1,6 @@
 import datetime
+
+from django.forms import model_to_dict
 from django.http.response import JsonResponse
 from django.core import serializers
 from django.shortcuts import render, HttpResponse, redirect
@@ -77,7 +79,6 @@ def saveProject(request):
                 if not Project_User.objects.filter(user_id=obj, project_id=projectId).exists():
                     Project_User.objects.create(project=project, user=user, addTime=datetime.datetime.now())
         ct += 1
-        # initialId += ct
     return respondDataToFront("成功")
 
 
@@ -163,3 +164,9 @@ def getTasksFromTheProject(request):
         print(item)
     # print(phaseList)
     return respondDataToFront(phaseList)
+
+
+def getProjectInforById(request):
+    projectId = request.GET.get("projectId")
+    project = Project.objects.filter(pk=projectId)
+    return respondDataToFront(list(project.values()))
