@@ -1,3 +1,5 @@
+from django.http import JsonResponse
+
 from ..models import User
 from ..serializers.user_serializer import UserListSerializer, UserDetailSerializer
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
@@ -105,3 +107,21 @@ def login(request: request.Request, pk=None, format=None):
 
         res_data = {**getTokensForUser(user), 'id': user.pk}
         return CustomResponse(data=res_data, message="登录成功")
+
+
+def respondDataToFront(preData):
+    data = {
+        'code': 200,
+        'message': "获取成功",
+        'data': preData
+    }
+    print("完成发送任务")
+    return JsonResponse(data=data, safe=False)
+
+
+def deleteOne(request):
+    pk = request.GET.get("id")
+    user = User.objects.get(pk=pk)
+    user.delete()
+    user.save()
+    return respondDataToFront("")
