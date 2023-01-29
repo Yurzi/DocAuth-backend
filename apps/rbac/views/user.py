@@ -1,4 +1,4 @@
-from ..models import User
+from ..models import User,Role
 from ..serializers.user_serializer import UserListSerializer, UserDetailSerializer
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.decorators import api_view, permission_classes
@@ -117,8 +117,15 @@ class WsUserView(views.APIView):
         ids = ids.replace(']','')
         ids = list(map(int,ids.split(',')))
 
+        roles = Role.objects.filter(role_id__in = ids)
+        if(roles.exists()):
+            roles.delete()
+
         users = User.objects.filter(id__in = ids)
         if users.exists():
             users.delete()
             #print(1223)
         return CustomResponse(code=200,message='删除成功',data=None)
+    def put(self,request):
+        re_data = request
+    
