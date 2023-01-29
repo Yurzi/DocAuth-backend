@@ -1,5 +1,4 @@
 from common.custom_response import CustomResponse
-from common.custom_exception import CustomException
 #---------------------
 from ..models import Role_Function
 from ..models import Role
@@ -29,8 +28,9 @@ class ZqxRSer(serializers.Serializer):
     status = serializers.CharField()
 
 
-#Role_Function删除
+
 class Role_FunctionView(views.APIView):
+    #Role_Function删除
     def delete(self, request):
         re_data = request.query_params
         print(re_data['roleid'])
@@ -73,8 +73,11 @@ class Role_FunctionView(views.APIView):
     #分页获取角色列表
     def get(self,request):
         re_data = request.query_params
-        rolename = re_data['roleName']
-        #print(rolename)
+        rolename = str(re_data['roleName'])
+        rolename = rolename.strip("'")
+        rolename = rolename.strip('"')
+
+        print(rolename)
         ps = re_data['pageSize']
         #print(ps)
         pn = re_data['pageNum']
@@ -205,5 +208,16 @@ class zqx_RView(views.APIView):
            return CustomResponse(message="该角色不存在",code = 402)
         rob.update(status=status)
         return CustomResponse(message='更新状态成功',code=200,data=None) 
-        
+    #获取所有的status为True的列表
+class WRoleView(views.APIView):
+    def get(self,request):
+        roles = Role.objects.all().order_by('id')
+        roleser = ZqxRSer(instance=roles,many=True)
+        role_data = roleser.data
+        for d in role_data:
+            if d['status']=='r' :
+                d['status']=True
+            else:
+                d['status']=False
+        return CustomResponse(code=200,data=role_data,message='查找成功')
 

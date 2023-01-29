@@ -15,6 +15,7 @@ class User(AbstractUser):
     password = models.CharField(max_length=100, verbose_name="密码")
     email = models.EmailField(verbose_name="邮箱", max_length=100, null=True, blank=True)
     REQUIRED_FIELDS: list[str] = ["phone", "password"]
+    gender = models.CharField(max_length=5, verbose_name="性别",default="男")
     USERNAME_FIELD = "username"
 
     class Meta:
