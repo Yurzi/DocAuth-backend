@@ -32,11 +32,11 @@ class ZqxRSer(serializers.Serializer):
 #Role_Function删除
 class Role_FunctionView(views.APIView):
     def delete(self, request):
-        re_data = request.data
-        
-        
+        re_data = request.query_params
+        print(re_data['roleid'])
+        print(re_data['functionid'])
         R_F_list = Role_Function.objects.all()
-        R_F_list = R_F_list.filter(role_id = re_data['roleId'],function_id = re_data['functionId'])
+        R_F_list = R_F_list.filter(role_id = re_data['roleid'],function_id = re_data['functionid'])
         
         if(R_F_list.exists()):
             R_F_list.delete()
@@ -72,15 +72,20 @@ class Role_FunctionView(views.APIView):
         return CustomResponse(data= None,message="更新成功",code=200)
     #分页获取角色列表
     def get(self,request):
-        re_data = request.data
+        re_data = request.query_params
         rolename = re_data['roleName']
+        #print(rolename)
         ps = re_data['pageSize']
+        #print(ps)
         pn = re_data['pageNum']
+        #print(pn)
         if rolename is None:
             roles = Role.objects.all()
         else:
             roles = Role.objects.filter(name__contains = rolename).order_by('id')
+        #print(roles)
         rsize = roles.count()
+        #print(rsize)
         if ps==0 or pn==0 or rsize==0:
             rt_data =   {"records":[],
                          "total":rsize
@@ -103,6 +108,7 @@ class Role_FunctionView(views.APIView):
                     "total":rsize
                     }
         return CustomResponse(code=200,data = rt_data,message = '查找成功')
+    #新增一个角色
     def post(self,request):
         re_data = request.data
         #print(re_data)
@@ -128,7 +134,7 @@ class Role_FunctionView(views.APIView):
 class zqxR_F1View(views.APIView):
     #根据id获取角色的权限列表
     def get(self,request):
-        re_data = request.data
+        re_data = request.query_params
         roleid = re_data['roleid']
         fid_list = Role_Function.objects.filter(role_id = roleid).values()
         b = []
@@ -141,15 +147,20 @@ class zqxR_F1View(views.APIView):
         return CustomResponse(code=200,message='成功',data=rt_data)
     #批量删除角色
     def delete(self,request):
-        re_data = request.data
-        rids = re_data['ids']
+        ids = request.query_params['ids']
+        ids = ids.replace('[','')
+        ids = ids.replace(']','')
+        #print(ids)
+        rids = list(map(int,ids.split(',')))
         #print(1111111111111)
-        #print(rids)
+        print(rids)
         flist = Role_Function.objects.filter(role_id__in= rids)
         if flist.exists():
             flist.delete()
         rs = Role.objects.filter(id__in = rids)
+        #print(1111111111)
         if rs.exists():
+            #print(222222222222)
             rs.delete()
         return CustomResponse(code=200,message='成功',data=None)
     #更新角色信息
@@ -167,7 +178,7 @@ class zqxR_F1View(views.APIView):
 class zqx_RView(views.APIView):
     #根据id删除一个角色
     def delete(self,request):
-        re_data = request.data
+        re_data = request.query_params
         roleid = re_data['roleid']
         flist = Role_Function.objects.filter(role_id= roleid)
         if flist.exists():

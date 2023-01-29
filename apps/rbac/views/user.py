@@ -100,7 +100,9 @@ def login(request: request.Request, pk=None, format=None):
 class WsUserView(views.APIView):
     def delete(self,request):
         ids = request.query_params['ids']
-        ids = map(int,ids.split(','))
+        ids = ids.replace('[','')
+        ids = ids.replace(']','')
+        ids = list(map(int,ids.split(',')))
 
         users = User.objects.filter(id__in = ids)
         if users.exists():
