@@ -74,20 +74,25 @@ class Role_FunctionView(views.APIView):
     def get(self,request):
         re_data = request.query_params
         rolename = str(re_data['roleName'])
-        rolename = rolename.strip("'")
-        rolename = rolename.strip('"')
+        
+        rolename = rolename.strip("\'")
+        rolename = rolename.strip('\"')
+        rolename = rolename.lstrip()
 
-        print(rolename)
+        #print(len(rolename))
         ps = re_data['pageSize']
         #print(ps)
         pn = re_data['pageNum']
         #print(pn)
-        if rolename is None:
+        if rolename == '':
             roles = Role.objects.all()
+            #print(222222222222222)
         else:
-            roles = Role.objects.filter(name__contains = rolename).order_by('id')
+            #print(111111111111)
+            roles = Role.objects.filter(name__contains = rolename)
         #print(roles)
         rsize = roles.count()
+        #print(11111111111111111)
         #print(rsize)
         if ps==0 or pn==0 or rsize==0:
             rt_data =   {"records":[],
@@ -107,6 +112,7 @@ class Role_FunctionView(views.APIView):
                 d['status'] = True
             else:
                 d['status'] = False
+        
         rt_data =   {"records":rolesser.data,
                     "total":rsize
                     }
@@ -123,14 +129,15 @@ class Role_FunctionView(views.APIView):
         else:
             n_r['status'] = 's'
         rId = Role.objects.create(name = n_r['rolename'],desc=n_r['desc'],status=n_r['status'])
-        for f in fu_list:
-            try:
-                fob = Function.objects.get(id= f)
-            except Function.DoesNotExist:
-                return CustomResponse(message="权限列表中有的权限id:"+str(f)+"不存在",code = 402)
+        if len(fu_list) > 0:
+            for f in fu_list:
+                try:
+                    fob = Function.objects.get(id= f)
+                except Function.DoesNotExist:
+                    return CustomResponse(message="权限列表中有的权限id:"+str(f)+"不存在",code = 402)
 
-        for f in fu_list:
-            Role_Function.objects.create(function_id=f,role_id=rId.id)
+            for f in fu_list:
+                Role_Function.objects.create(function_id=f,role_id=rId.id)
 
         return CustomResponse(code=200,message='成功',data=None)
 
@@ -138,6 +145,7 @@ class zqxR_F1View(views.APIView):
     #根据id获取角色的权限列表
     def get(self,request):
         re_data = request.query_params
+        print(re_data)
         roleid = re_data['roleid']
         fid_list = Role_Function.objects.filter(role_id = roleid).values()
         b = []
@@ -146,17 +154,19 @@ class zqxR_F1View(views.APIView):
         f_list = Function.objects.filter(id__in = b)
         FS = FSer(instance=f_list,many = True)
         rt_data = FS.data
+        for c in rt_data:
+            if c['status']=="s":
+                c['status']="停止使用"
+            if c['status']=="r":
+                c['status']="正在使用"
+            if c['status']=="d":
+                c['status']="开发中"
         #print(flist.function_id)
         return CustomResponse(code=200,message='成功',data=rt_data)
     #批量删除角色
     def delete(self,request):
-        ids = request.query_params['ids']
-        ids = ids.replace('[','')
-        ids = ids.replace(']','')
-        #print(ids)
-        rids = list(map(int,ids.split(',')))
-        #print(1111111111111)
-        print(rids)
+        ids = request.query_params.getlist('ids[]')
+        rids = list(map(int,ids))
         flist = Role_Function.objects.filter(role_id__in= rids)
         if flist.exists():
             flist.delete()
@@ -181,8 +191,12 @@ class zqxR_F1View(views.APIView):
 class zqx_RView(views.APIView):
     #根据id删除一个角色
     def delete(self,request):
+        #print()
+
         re_data = request.query_params
+        print(re_data)
         roleid = re_data['roleid']
+        print(1111111111)
         flist = Role_Function.objects.filter(role_id= roleid)
         if flist.exists():
             flist.delete()
@@ -193,6 +207,7 @@ class zqx_RView(views.APIView):
     #更新角色状态
     def put(self,request):
         re_data = request.data
+        print(re_data)
         rid = re_data['roleid']
         status = re_data['status']
         if status:
