@@ -5,7 +5,7 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from common.custom_response import CustomResponse
 from common.custom_exception import CustomException
 from ..serializers import TaskSerializer,RecordSerializer,TaskUserSerializer
-from ..models import Task,Record,Article,Task_User,Project
+from ..models import Task,Record,Article,Task_User,Project,Project_User
 from ...rbac.models import User
 import uuid
 from django.http import FileResponse
@@ -158,10 +158,21 @@ class FinishTaskView(CreateAPIView):
         contents = json.dumps(struct,ensure_ascii=False)
         Article.objects.create(task=task, content=contents)
 
+        project = task.project
+        projTasks = Task.objects.filter(project=project)
+        projFinished = True
+        for t in projTasks.all():
+            if t.status != 'f':
+                projFinished = False
+                break
+        if projFinished:
+            project.status = 'f'
+            project.save(force_update=True)
+
         return CustomResponse(status=status.HTTP_200_OK, message="完成任务成功")
 
 
-class ArticlePDFView(RetrieveAPIView):
+class TaskPDFView(RetrieveAPIView):
     def get(self, request, pk, format=None):
         '''获取任务PDF'''
         try:
@@ -188,4 +199,45 @@ class ArticlePDFView(RetrieveAPIView):
 
 def createProjectArticleStructure(project:Project,tasks)->list[list[str]]:
   # contents :  list[list[content,tag]]
-  return []
+  contents = []
+  contents.append(['项目总结','title'])
+  contents.append(['项目介绍','h1'])
+  contents.append(['项目ID：' + str(project.pk),'h4']) 
+  contents.append(['项目名称：' + str(project.name) ,'h4']) 
+  contents.append(['项目描述：' + str(project.desc),'h4']) 
+  contents.append(['项目成员：','h4'])
+  users = Project_User.objects.filter(project=project)
+  for u in users.all():
+    contents.append([str(u.user),'h4'])
+  contents.append(['项目成员：','h4'])
+  contents.append(['项目创建时间：' + str(project.addTime),'h4'])
+  contents.append(['任务总结','h1'])
+  for t in tasks.all():
+    if t.status != 'f':
+        raise CustomException(status_code=status.HTTP_400_BAD_REQUEST, message="项目中任务未完成")
+    t_article = Article.objects.get(task=t)
+    t_struct = json.loads(t_article.content)
+    contents.extend(t_struct)
+  return contents
+
+
+class ProjectPDFView(RetrieveAPIView):
+    def get(self, request, pk, format=None):
+        '''获取项目PDF'''
+        try:
+            project = Project.objects.get(pk=pk)
+        except:
+            raise CustomException(status_code=status.HTTP_404_NOT_FOUND, message="项目不存在")
+
+        if project.status != 'f':
+            raise CustomException(status_code=status.HTTP_400_BAD_REQUEST, message="项目未完成")
+
+        tasks = Task.objects.filter(project=project)
+
+        struct = createProjectArticleStructure(project,tasks)
+        buffer = createPdfBuf(struct)
+
+        # FileResponse sets the Content-Disposition header so that browsers
+        # present the option to save the file.
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename='项目'+str(project) + '.pdf')

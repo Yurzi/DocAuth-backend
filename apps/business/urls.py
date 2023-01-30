@@ -16,6 +16,6 @@ urlpatterns = [
     path('/task/submit/<int:pk>', task.SubmitTaskView.as_view()),
     path('/task/finish/<int:pk>', task.FinishTaskView.as_view()),
     path('/task/revert/<int:pk>', task.RevertTaskView.as_view()),
-    path('/task/article/<int:pk>', task.ArticlePDFView.as_view()),
-
+    path('/task/article/<int:pk>', task.TaskPDFView.as_view()),
+    path('/project/article/<int:pk>', task.ProjectPDFView.as_view()),
 ]
