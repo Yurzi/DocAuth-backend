@@ -4,9 +4,10 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY
 from io import BytesIO
+import os.path
 # 将public下的字体文件拷贝到第三方包的目录下，如：
 # site-packages\reportlab\fonts下
-pdfmetrics.registerFont(TTFont('SimSun', 'SimSun.ttf'))  # 默认不支持中文，需要注册字体
+pdfmetrics.registerFont(TTFont('SimSun', os.path.join('public','SimSun.ttf')))  # 默认不支持中文，需要注册字体
 
 stylesheet = getSampleStyleSheet()   # 获取样式集
 
