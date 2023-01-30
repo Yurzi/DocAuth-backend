@@ -108,12 +108,7 @@ def saveTask(request):
 def getThisUserProjectList(request):
     thisUserId = request.GET.get("userId")
     print(thisUserId)
-    projectList = Project_User.objects.filter(user=thisUserId).values("project__status",
-                                                                      "project__name",
-                                                                      "project__id",
-                                                                      "project__addTime"
-                                                                      ).distinct()
-    print(projectList)
+    projectList = Project_User.objects.filter(user=thisUserId).values("project__status","project__name","project__id","project__addTime","project__desc").distinct()
     return respondDataToFront(list(projectList))
 
 

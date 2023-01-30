@@ -7,9 +7,9 @@ urlpatterns = [
     path('/getTasksFromTheProject', project.getTasksFromTheProject),
     path('/saveTask', project.saveTask),
     path('/project/Info', project.getProjectInforById),
+    path('/project/list', project.getThisUserProjectList),
     path('/saveTask', project.saveTask),
     path('/newProject', project.newProject),
-
     path('/task/<int:pk>', task.TaskView.as_view()),
     path('/record/list', task.RecordListView.as_view()),
     path('/usertask/list', task.Task_UserListViews.as_view()),
