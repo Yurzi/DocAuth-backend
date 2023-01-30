@@ -72,7 +72,10 @@ class Role_FunctionView(views.APIView):
         return CustomResponse(data= None,message="更新成功",code=200)
     #分页获取角色列表
     def get(self,request):
+        print(11111)
+        
         re_data = request.query_params
+        print(re_data)
         rolename = str(re_data['roleName'])
         
         rolename = rolename.strip("\'")
@@ -223,7 +226,7 @@ class zqx_RView(views.APIView):
            return CustomResponse(message="该角色不存在",code = 402)
         rob.update(status=status)
         return CustomResponse(message='更新状态成功',code=200,data=None) 
-    #获取所有的status为True的列表
+    #获取所有的权限的列表
 class WRoleView(views.APIView):
     def get(self,request):
         roles = Role.objects.all().order_by('id')

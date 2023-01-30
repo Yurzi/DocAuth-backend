@@ -113,10 +113,8 @@ def login(request: request.Request, pk=None, format=None):
 
 class WsUserView(views.APIView):
     def delete(self,request):
-        ids = request.query_params['ids']
-        ids = ids.replace('[','')
-        ids = ids.replace(']','')
-        ids = list(map(int,ids.split(',')))
+        ids = request.query_params.getlist('ids[]')
+        ids = list(map(int,ids))
 
         roles = Role.objects.filter(role_id__in = ids)
         if(roles.exists()):
@@ -170,12 +168,15 @@ class WsUser_2_view(views.APIView):
         uname = str(re_data['userName'])
         uname = uname.strip('\'')
         uname = uname.strip('\"')
+        uname = uname.lstrip()      
         phone = str(re_data['phone'])
         phone = phone.strip('\'')
         phone = phone.strip('\"')
+        phone = phone.strip()
         role = str(re_data['role'])
         role = role.strip('\'')
         role = role.strip('\"')
+        role = role.strip()
 
         pn = re_data['pageNum']
         ps = re_data['pageSize']
