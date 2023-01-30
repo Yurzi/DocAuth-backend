@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from apps.rbac.models import Function
-from common.custom_exception import CustomException, custom_exception_handler
 
 
 class FunctionSerializer(serializers.ModelSerializer):
