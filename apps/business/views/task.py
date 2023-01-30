@@ -1,15 +1,15 @@
+import json
 from rest_framework import status, request
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView,ListAPIView,RetrieveAPIView
 from common.custom_response import CustomResponse
 from common.custom_exception import CustomException
 from ..serializers import TaskSerializer,RecordSerializer,TaskUserSerializer
-from ..models import Task,Record,Article,Task_User
+from ..models import Task,Record,Article,Task_User,Project
 from ...rbac.models import User
 import uuid
-import io
 from django.http import FileResponse
-from reportlab.pdfgen import canvas
+from .utils import createPdfBuf
 
 def getSearchObject(query,queries:list[str]):
   res = {}
@@ -113,17 +113,20 @@ class RevertTaskView(CreateAPIView):
     return CustomResponse(status=status.HTTP_200_OK, message="退回成功")
 
 
-def createTaskArticleContent(task:Task,records):
-  contents = ''
-  contents = contents +  '\n任务ID：' + str(task.pk)
-  contents = contents +  '\n任务名称：' + str(task.name) 
-  contents = contents +  '\n任务所属项目：' + str(task.project) 
-  contents = contents +  '\n任务描述：' + str(task.desc)
-  contents = contents +  '\n任务成员：' + str(task.members)
-  contents = contents +  '\n任务创建时间：' + str(task.addTime)
+def createTaskArticleStructure(task:Task,records)->list[list[str]]:
+  # contents :  list[list[content,tag]]
+  contents = []
+  contents.append(['任务总结','h2'])
+  contents.append(['任务ID：' + str(task.pk),'h4']) 
+  contents.append(['任务名称：' + str(task.name) ,'h4']) 
+  contents.append(['任务所属项目：' + str(task.project) ,'h4']) 
+  contents.append(['任务描述：' + str(task.desc),'h4']) 
+  contents.append(['任务成员：','h4'])
+  contents.append([[str(m),'h4'] for m in task.members.all()])
+  contents.append(['任务创建时间：' + str(task.addTime),'h4']) 
   for r in records:
-    recordCt = '\n\n' + '步骤：' + str(r.type) + '\n' + '提交人：' + str(r.user) + '\n' + '提交时间：' + str(r.addTime) + '\n' + '内容：' + str(r.content)
-    contents = contents + recordCt
+    recordCt = '</br>' + '步骤：' + str(r.type) + '</br>' + '提交人：' + str(r.user) + '</br>' + '内容：' + str(r.content) + '</br>' + '提交时间：' + str(r.addTime)
+    contents.append([recordCt,'body'])
   return contents
 
 
@@ -143,7 +146,8 @@ class FinishTaskView(CreateAPIView):
 
     records = Record.objects.filter(task=task, status='f')
     
-    contents = createTaskArticleContent(task,records)
+    struct = createTaskArticleStructure(task,records)
+    contents = json.dumps(struct,ensure_ascii=False)
     Article.objects.create(task=task, content=contents)
 
     return CustomResponse(status=status.HTTP_200_OK, message="完成任务成功")
@@ -165,21 +169,15 @@ class ArticlePDFView(RetrieveAPIView):
     except:
       raise CustomException(status_code=status.HTTP_404_NOT_FOUND, message="文章不存在")
 
-    # Create a file-like buffer to receive PDF data.
-    buffer = io.BytesIO()
-
-    # Create the PDF object, using the buffer as its "file."
-    p = canvas.Canvas(buffer)
-
-    # Draw things on the PDF. Here's where the PDF generation happens.
-    # See the ReportLab documentation for the full list of functionality.
-    p.drawString(100, 100, article.content)
-
-    # Close the PDF object cleanly, and we're done.
-    p.showPage()
-    p.save()
+    struct = json.loads(article.content)
+    buffer = createPdfBuf(struct)
 
     # FileResponse sets the Content-Disposition header so that browsers
     # present the option to save the file.
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=str(task) + '.pdf')
+
+
+def createProjectArticleStructure(project:Project,tasks)->list[list[str]]:
+  # contents :  list[list[content,tag]]
+  return []
