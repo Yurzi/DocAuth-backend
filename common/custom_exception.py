@@ -34,12 +34,8 @@ def custom_exception_handler(exc, context):
             status=exc.status,
         )
     else:
-        response = Response(
-            data={
-                "code": 400,
-                'data':str(exc),
-            },
-            status=400,
-        )
+        response = exception_handler(exc, context)
+        if response:
+            response = Response(status=response.status_code, data=response.data)
     return response
 

@@ -8,7 +8,7 @@ urlpatterns = [
          UserRegisterView.as_view(), name='user_create'),
     path('/user/<int:pk>',
          UserDetailView.as_view(), name='user_detail'),
-    path('/user/one', user.deleteOne)
+    path('/user/one', user.deleteOne),
     path('/user/list', UserListView.as_view(), name='user_list'),
     path('/user/login', login, name='user_login'),
 ]
