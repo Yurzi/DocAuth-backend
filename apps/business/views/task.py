@@ -130,10 +130,10 @@ def createTaskArticleStructure(task:Task,records)->list[list[str]]:
   contents.append(['任务所属项目：' + str(task.project) ,'h4']) 
   contents.append(['任务描述：' + str(task.desc),'h4']) 
   contents.append(['任务成员：','h4'])
-  contents.append([[str(m),'h4'] for m in task.members.all()])
+  contents.extend([[str(m),'h4'] for m in task.members.all()])
   contents.append(['任务创建时间：' + str(task.addTime),'h4']) 
   for r in records:
-    recordCt = '</br>' + '步骤：' + str(r.type) + '</br>' + '提交人：' + str(r.user) + '</br>' + '内容：' + str(r.content) + '</br>' + '提交时间：' + str(r.addTime)
+    recordCt = '<br/>' + '步骤：' + str(r.type) + '<br/>' + '提交人：' + str(r.user) + '<br/>' + '内容：' + str(r.content) + '<br/>' + '提交时间：' + str(r.addTime)
     contents.append([recordCt,'body'])
   return contents
 
