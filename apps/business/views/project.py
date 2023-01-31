@@ -24,6 +24,18 @@ def respondDataToFront(preData):
     return JsonResponse(data=data, safe=False)
 
 
+@csrf_exempt
+def newProject(request):
+    data = json.loads(request.body)
+    projectName = data['prjectName']
+    projectDesc = data['desc']
+    print(data)
+    print(projectName)
+    Project.objects.create(desc=projectDesc, name=projectName, status='r', addTime=datetime.datetime.now())
+    
+    return HttpResponse("成功")
+
+
 class createProjectView(CreateAPIView):
     def post(self, request):
         '''创建项目'''
