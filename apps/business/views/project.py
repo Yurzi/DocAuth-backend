@@ -28,9 +28,10 @@ def respondDataToFront(preData):
 def newProject(request):
     data = json.loads(request.body)
     projectName = data['prjectName']
+    projectDesc = data['desc']
     print(data)
     print(projectName)
-    Project.objects.create(name=projectName, status='r', addTime=datetime.datetime.now())
+    Project.objects.create(desc=projectDesc, name=projectName, status='r', addTime=datetime.datetime.now())
     print("你好ssss")
     return HttpResponse("成功")
 

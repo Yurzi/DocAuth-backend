@@ -9,6 +9,7 @@ class Project(models.Model):
         ('s', '暂停中'),
         ('r', '进行中'),
         ('f', '已完成'),
+        ('w', '待分配'),
     )
     name = models.CharField(max_length=30, verbose_name="项目名")
     desc = models.CharField(max_length=100, verbose_name="项目描述", blank=True, null=True)
