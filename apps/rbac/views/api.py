@@ -1,7 +1,7 @@
 from rest_framework import status, views
 
 from apps.rbac.models import Api, Api_Function, Function
-from apps.rbac.serializers.api_serializer import (ApiSerializer,
+from apps.rbac.serializers.api_serializer import (ApiSerializer,ApiWriteSerializer,
                                                   ApiWithFunctionSerializer)
 from apps.rbac.serializers.utils import check_serializer_valid
 from common.custom_exception import CustomException
@@ -27,7 +27,8 @@ class ApiListView(views.APIView):
         )
 
     def post(self, request):
-        serializer = ApiSerializer(data=request.data)
+        print(request.data)
+        serializer = ApiWriteSerializer(data=request.data)
         # 校验数据
         check_serializer_valid(serializer)
         # 校验通过
@@ -62,7 +63,7 @@ class ApiDetailView(views.APIView):
         return CustomResponse(code=status.HTTP_200_OK, data=serializer.data)
 
     def put(self, request):
-        serializer = ApiSerializer(data=request.data)
+        serializer = ApiWriteSerializer(data=request.data)
         check_serializer_valid(serializer)
         serializer.update(
             instance=self.get_object(pk=request.data["id"]),
@@ -74,9 +75,10 @@ class ApiDetailView(views.APIView):
         )
 
     def delete(self, request):
+        print(request.query_params)
         request_dict = request.query_params
         api_id = request_dict["id"]
-
+        print(api_id)
         api = self.get_object(pk=api_id)
         print(api)
         api.delete()
@@ -186,14 +188,17 @@ class zqxApiView(views.APIView):
         name = name.strip('\"')
         name = name.lstrip()
         print(name)
-        apis = Api.objects.filter(Q(path__contains=pat)|Q(name__contains=name))
+
+        apis1 = Api.objects.filter(path__contains=pat)
+        apis2 = Api.objects.filter(name__contains=name)
+        apis = apis1&apis2
         asize = apis.count()
         if pn==0 or ps==0 or asize==0:
             rt_data = {
             "records":[],
             "total":asize
         }
-            return CustomResponse(code=0,data=rt_data,message='查找成功')
+            return CustomResponse(code=0,data=rt_data,message='无匹配数据')
         pageinator = Paginator(apis,ps)
         try:
             page=pageinator.page(pn)
@@ -216,7 +221,13 @@ class zqxApiView(views.APIView):
     #批量删除Api
     def delete(self,request):
         re_data = request.query_params
+        print(re_data)
         ids = re_data.getlist('ids[]')
-        Api.objects.filter(id__in =ids)
+        print(ids)
+        ids = list(map(int,ids))
+        print(ids)
+        apis = Api.objects.filter(id__in =ids)
+        if apis.exists():
+            apis.delete()
         return CustomResponse(code=200,message='删除成功')
     

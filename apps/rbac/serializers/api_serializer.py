@@ -20,6 +20,22 @@ class ApiSerializer(serializers.ModelSerializer):
         if obj.status == "s":
             return "停止使用"
 
+class ApiWriteSerializer(serializers.ModelSerializer):
+    status_display = serializers.SerializerMethodField(required=False)
+
+    class Meta:
+        model = Api
+        fields = "__all__"
+        #read_only_fields = ("path",)
+
+    def get_status_display(self, obj):
+        if obj.status == "r":
+            return "正在使用"
+        if obj.status == "d":
+            return "开发中"
+        if obj.status == "s":
+            return "停止使用"
+
 
 class ApiWithFunctionSerializer(serializers.ModelSerializer):
     status_display = serializers.SerializerMethodField(required=False)
