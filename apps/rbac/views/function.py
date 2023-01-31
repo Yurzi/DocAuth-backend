@@ -80,7 +80,7 @@ class FunctionDetailView(views.APIView):
 
 @api_view(["DELETE"])
 def function_del_list(request):
-    request_list = request.query_params.getlist("ids")
+    request_list = request.query_params.getlist("ids[]")
 
     rids = list(map(int, request_list))
     print(rids)
