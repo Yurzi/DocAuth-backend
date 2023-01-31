@@ -45,7 +45,7 @@ class Task(models.Model):
     )
     name = models.CharField(max_length=30, verbose_name="任务名")
     desc = models.CharField(max_length=100, verbose_name="任务描述", default="")
-    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r')
+    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='w')
     step = models.IntegerField(verbose_name="当前步骤", choices=STEP_CHOICES, default=1)
     thisId = models.IntegerField(verbose_name="在某一阶段中此任务的相对id", default=0)
     thisFarther = models.IntegerField(verbose_name="在某一阶段中此任务的父结点id", default=0)
