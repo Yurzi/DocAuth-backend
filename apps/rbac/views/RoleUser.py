@@ -26,6 +26,7 @@ class wsRUView(views.APIView):
         return CustomResponse(message= '更新完毕',code=200,data=None )
     def get(self,request):
         re_data = request.query_params
+        print(re_data)
         uid = re_data['userid']
         print(uid)
         R_U_obs = Role_User.objects.filter(user_id = uid)
