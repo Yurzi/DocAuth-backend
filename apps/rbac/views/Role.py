@@ -51,6 +51,7 @@ class Role_FunctionView(views.APIView):
     # Role_Function更新
     def put(self, request):
         re_data = request.data
+        print(re_data)
         rid = re_data['roleId']
         fList = re_data['functionIdList']
         print(rid)
