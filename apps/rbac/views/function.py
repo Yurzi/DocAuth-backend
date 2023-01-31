@@ -1,4 +1,5 @@
 from rest_framework import status, views
+from rest_framework.decorators import api_view
 
 from apps.rbac.models import Function
 from apps.rbac.serializers.function_serializer import FunctionSerializer
@@ -62,7 +63,10 @@ class FunctionDetailView(views.APIView):
     def put(self, request):
         serializer = FunctionSerializer(data=request.data)
         check_serializer_valid(serializer)
-        serializer.update(instance=self.get_object(pk=request.data['id']), validated_data=serializer.validated_data)
+        serializer.update(
+            instance=self.get_object(pk=request.data["id"]),
+            validated_data=serializer.validated_data,
+        )
         return CustomResponse(code=status.HTTP_200_OK, data=request.data)
 
     def delete(self, request):
@@ -72,3 +76,36 @@ class FunctionDetailView(views.APIView):
         function = self.get_object(pk=function_id)
         function.delete()
         return CustomResponse(code=status.HTTP_200_OK, message="删除成功", data={})
+
+
+@api_view(["DELETE"])
+def function_del_list(request):
+    request_list = request.query_params.getlist("ids")
+
+    rids = list(map(int, request_list))
+    print(rids)
+
+    failure_list: list[int] = list()
+
+    for function_id in rids:
+        function = None
+        try:
+            function = Function.objects.get(id=function_id)
+        except Function.DoesNotExist:
+            failure_list.append(function_id)
+
+        if function is not None:
+            function.delete()
+
+    for function_id in failure_list:
+        rids.remove(function_id)
+    if not len(failure_list) == 0:
+        return CustomResponse(
+            code=status.HTTP_202_ACCEPTED,
+            message="删除成功,部分失败",
+            data={"success": rids, "failure_list": failure_list},
+        )
+
+    return CustomResponse(
+        code=status.HTTP_200_OK, message="删除成功", data={"success": rids}
+    )
