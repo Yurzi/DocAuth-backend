@@ -3,7 +3,7 @@ import datetime
 from rest_framework.generics import CreateAPIView
 from common.custom_response import CustomResponse
 from common.custom_exception import CustomException
-from django.http.response import JsonResponse
+from django.http.response import JsonResponse, HttpResponse
 import json
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
@@ -31,8 +31,7 @@ def newProject(request):
     projectDesc = data['desc']
     print(data)
     print(projectName)
-    Project.objects.create(desc=projectDesc, name=projectName, status='r', addTime=datetime.datetime.now())
-    
+    Project.objects.create(desc=projectDesc, name=projectName, status='w', addTime=datetime.datetime.now())
     return HttpResponse("成功")
 
 
@@ -44,8 +43,8 @@ class createProjectView(CreateAPIView):
             user = User.objects.get(pk=data["user"])
         except:
             raise CustomException(status_code=status.HTTP_404_NOT_FOUND, code=404, message="用户不存在")
-        project = Project.objects.create(name=data["name"],desc=data["desc"])
-        Project_User.objects.create(user=user,project=project)
+        project = Project.objects.create(name=data["name"], desc=data["desc"], status='w')
+        Project_User.objects.create(user=user, project=project)
         return CustomResponse("创建项目成功")
 
 
@@ -68,6 +67,7 @@ def saveProject(request):
     # 根据id得到当前项目
     project = Project.objects.get(id=projectId)
     project.status = 'r'
+    project.phaseNumber = len(phaseList)
     project.save(force_update=True)
 
     # initialId = task.id + 1
@@ -85,7 +85,8 @@ def saveProject(request):
                                       thisFarther=rb, phase=ct,
                                       startTime=datetime.datetime.now(),
                                       deadLine=datetime.datetime.now(),
-                                      project=project)
+                                      project=project,
+                                      status='w')
             # 将task和user,project和user一一关联起来
             currentType = 0
             for obj in task['staffs']:
@@ -124,7 +125,8 @@ def saveTask(request):
 def getThisUserProjectList(request):
     thisUserId = request.GET.get("userId")
     print(thisUserId)
-    projectList = Project_User.objects.filter(user=thisUserId).values("project__status","project__name","project__id","project__addTime","project__desc").distinct()
+    projectList = Project_User.objects.filter(user=thisUserId).values("project__status", "project__name", "project__id",
+                                                                      "project__addTime", "project__desc").distinct()
     return respondDataToFront(list(projectList))
 
 

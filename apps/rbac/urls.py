@@ -6,7 +6,7 @@ from .views.user import UserListView, UserDetailView, UserRegisterView,WsUserVie
 from .views.Role import Role_FunctionView,zqxR_F1View,zqx_RView,WRoleView
 from .views.RoleUser import wsRUView
 from .views.UserFunction import W_U_FView,W_U_FViewAll
-from apps.rbac.views.function import FunctionListView, FunctionDetailView
+from apps.rbac.views.function import FunctionListView, FunctionDetailView, function_del_list
 from apps.rbac.views.api import ApiListView,ApiDetailView,ApiFunctionView
 from apps.rbac.views.Role import Role_FunctionView, zqx_RView, zqxR_F1View
 from apps.rbac.views.user import (UserDetailView, UserListView,
@@ -44,6 +44,7 @@ urlpatterns = [
     # Function
     path("/permission", FunctionListView.as_view()),
     path("/permission/status", FunctionDetailView.as_view()),
+    path("/permission/delList", function_del_list),
     # Api
     path("/permission/api", ApiListView.as_view()),
     path("/permission/api/status", ApiDetailView.as_view()),
