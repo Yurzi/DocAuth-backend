@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 
 from ..models import User
-from ..models import User,Role,Role_User
+from ..models import User, Role, Role_User, User_Function
 from ..serializers.user_serializer import UserListSerializer, UserDetailSerializer
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.decorators import api_view, permission_classes
@@ -10,9 +10,10 @@ from common.custom_response import CustomResponse
 from common.custom_exception import CustomException
 from rest_framework import status, request
 from ..utils import getTokensForUser
-from django.core.paginator import Paginator,EmptyPage
+from django.core.paginator import Paginator, EmptyPage
 from rest_framework import views
 from django.db.models import Q
+
 
 class UserDetailView(RetrieveUpdateDestroyAPIView):
     '''
@@ -131,108 +132,112 @@ def deleteOne(request):
 
 
 class WsUserView(views.APIView):
-    def delete(self,request):
+    def delete(self, request):
         ids = request.query_params.getlist('ids[]')
-        ids = list(map(int,ids))
-
-        roles = Role.objects.filter(role_id__in = ids)
-        if(roles.exists()):
+        ids = list(map(int, ids))
+        roles = Role_User.objects.filter(user_id__in=ids)
+        if roles.exists():
             roles.delete()
-
-        users = User.objects.filter(id__in = ids)
+        ufs = User_Function.objects.filter(user_id__in=ids)
+        if ufs.exists():
+            ufs.delete()
+        users = User.objects.filter(id__in=ids)
         if users.exists():
             users.delete()
-            #print(1223)
-        return CustomResponse(code=200,message='删除成功',data=None)
-    def get(self,request):
+            # print(1223)
+
+        return CustomResponse(code=200, message='删除成功', data=None)
+
+    def get(self, request):
         re_data = request.query_params
         pn = re_data['pageNum']
         ps = re_data['pageSize']
         us = User.objects.all()
         us.order_by('id')
         usize = us.count()
-        if ps==0 or pn==0 or usize==0:
-            rt_data =   {"records":[],
-                         "total":usize
-                        }
-            return CustomResponse(code=200,data = rt_data,message = '查找成功')
+        if ps == 0 or pn == 0 or usize == 0:
+            rt_data = {"records": [],
+                       "total": usize
+                       }
+            return CustomResponse(code=200, data=rt_data, message='查找成功')
 
-        pageinator = Paginator(us,ps)
+        pageinator = Paginator(us, ps)
         try:
-            page=pageinator.page(pn)
+            page = pageinator.page(pn)
         except EmptyPage:
             page = pageinator.page(1)
-        usser = UserListSerializer(instance=page,many = True)
-        rt_data =   {"records":usser.data,
-                    "total":usize
-                    }
-        return CustomResponse(code=200,data = rt_data,message = '查找成功')
-    def put(self,request):
-        re_data=request.data
+        usser = UserListSerializer(instance=page, many=True)
+        rt_data = {"records": usser.data,
+                   "total": usize
+                   }
+        return CustomResponse(code=200, data=rt_data, message='查找成功')
+
+    def put(self, request):
+        re_data = request.data
         id = re_data['id']
         gd = re_data['gender']
         eml = re_data['email']
         phe = re_data['phone']
         uname = re_data['username']
         name = re_data['name']
-        us = User.objects.filter(id = id)
+        us = User.objects.filter(id=id)
         if not us.exists():
-            return CustomResponse(code=402,message='该用户不存在')
-        us.update(gender=gd,email=eml,phone=phe,username=uname,name=name)
-        return CustomResponse(code=200,message='更新成功')
+            return CustomResponse(code=402, message='该用户不存在')
+        us.update(gender=gd, email=eml, phone=phe, username=uname, name=name)
+        return CustomResponse(code=200, message='更新成功')
+
 
 class WsUser_2_view(views.APIView):
-    def get(self,request):
+    def get(self, request):
         re_data = request.query_params
-        uname = str(re_data['userName'])
+        print(re_data)
+        uname = re_data['userName']
         uname = uname.strip('\'')
         uname = uname.strip('\"')
-        uname = uname.lstrip()      
-        phone = str(re_data['phone'])
+        uname = uname.lstrip()
+        phone = re_data['phone']
         phone = phone.strip('\'')
         phone = phone.strip('\"')
         phone = phone.strip()
-        role = str(re_data['role'])
+        role = re_data['role']
         role = role.strip('\'')
         role = role.strip('\"')
         role = role.strip()
 
         pn = re_data['pageNum']
         ps = re_data['pageSize']
-        us1 = User.objects.filter(Q(username__contains=uname)&Q(phone__contains=phone))
-        
+        us1 = User.objects.filter(Q(username__contains=uname) & Q(phone__contains=phone))
+
         if role == '':
             us = us1
         else:
-            roles = Role.objects.filter(name__contains=role).values()        
+            roles = Role.objects.filter(name__contains=role).values()
             b = []
             for r in roles:
                 b.append(r['id'])
 
-            r_us = Role_User.objects.filter(role_id__in = b).values()
+            r_us = Role_User.objects.filter(role_id__in=b).values()
             c = []
             for r_u in r_us:
                 c.append(r_u['user_id'])
-            us2 = User.objects.filter(id__in = c)
+            us2 = User.objects.filter(id__in=c)
 
-            us = us1&us2
-        
+            us = us1 & us2
+
         usize = us.count()
-        if ps==0 or pn==0 or usize==0:
-            rt_data =   {"records":[],
-                         "total":usize
-                        }
-            return CustomResponse(code=200,data = rt_data,message = '查找成功')
+        if ps == 0 or pn == 0 or usize == 0:
+            rt_data = {"records": [],
+                       "total": usize
+                       }
+            return CustomResponse(code=200, data=rt_data, message='查找成功')
 
-        pageinator = Paginator(us,ps)
+        pageinator = Paginator(us, ps)
         try:
-            page=pageinator.page(pn)
+            page = pageinator.page(pn)
         except EmptyPage:
             page = pageinator.page(1)
-        usser = UserListSerializer(instance=page,many = True)
-        rt_data =   {"records":usser.data,
-                    "total":usize
-                    }
-        return CustomResponse(code=200,data = rt_data,message = '查找成功')
-
-    
+        usser = UserListSerializer(instance=page, many=True)
+        rt_data = {"records": usser.data,
+                   "total": usize
+                   }
+        return CustomResponse(code=200, data=rt_data, message='查找成功')

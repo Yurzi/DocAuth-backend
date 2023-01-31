@@ -6,7 +6,7 @@ from common.custom_response import CustomResponse
 class W_U_FView(views.APIView):
     def get(self,request):
         re_data = request.query_params
-
+        print('',re_data)
         uid = re_data['userId']
         ufs = User_Function.objects.filter(user_id = uid).values()
         b = []
