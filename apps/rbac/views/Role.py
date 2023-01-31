@@ -62,8 +62,8 @@ class Role_FunctionView(views.APIView):
         R_F_list = Role_Function.objects.all()
 
         R_F_list = R_F_list.filter(role_id=rid)
-        if R_F_list.exists():
-            R_F_list.delete()
+        #if R_F_list.exists():
+            #R_F_list.delete()
 
         for f in fList:
             try:
