@@ -6,7 +6,8 @@ from apps.rbac.serializers.api_serializer import (ApiSerializer,
 from apps.rbac.serializers.utils import check_serializer_valid
 from common.custom_exception import CustomException
 from common.custom_response import CustomResponse
-
+from django.db.models import Q
+from django.core.paginator import Paginator,EmptyPage
 
 class ApiListView(views.APIView):
     """
@@ -164,4 +165,58 @@ class ApiFunctionView(views.APIView):
         record.delete()
         return CustomResponse(code=status.HTTP_200_OK, message="删除成功", data=ApiWithFunctionSerializer(instance=api).data)
 
-        
+
+
+class zqxApiView(views.APIView):
+    #模糊分页获取API
+    def get(self,request):
+        re_data = request.query_params
+        print(re_data)
+        pn = re_data['pageNum']
+        ps = re_data['pageSize']
+        print(pn)
+        pat = re_data['path']
+        print(type(pat))
+        pat = pat.strip('\'')
+        pat = pat.strip('\"')
+        pat = pat.lstrip()
+        print(pat)
+        name = re_data['name']
+        name = name.strip('\'')
+        name = name.strip('\"')
+        name = name.lstrip()
+        print(name)
+        apis = Api.objects.filter(Q(path__contains=pat)|Q(name__contains=name))
+        asize = apis.count()
+        if pn==0 or ps==0 or asize==0:
+            rt_data = {
+            "records":[],
+            "total":asize
+        }
+            return CustomResponse(code=0,data=rt_data,message='查找成功')
+        pageinator = Paginator(apis,ps)
+        try:
+            page=pageinator.page(pn)
+        except EmptyPage:
+            page = pageinator.page(1)
+        apsser = ApiSerializer(instance=page,many = True)
+        api_datas = apsser.data
+        # for d in role_datas:
+        #     if d['status'] == 'r':
+        #         d['status'] = True
+        #     else:
+        #         d['status'] = False
+        for d in api_datas:
+            d['status'] = d['status_display']
+        rt_data =   {"records":api_datas,
+                    "total":asize
+                    }
+        return CustomResponse(code=200,data = rt_data,message = '查找成功')
+
+    #批量删除Api
+    def delete(self,request):
+        re_data = request.query_params
+        ids = re_data.getlist('ids[]')
+        Api.objects.filter(id__in =ids)
+        return CustomResponse(code=200,message='删除成功')
+    
