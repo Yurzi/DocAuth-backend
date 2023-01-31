@@ -25,6 +25,7 @@ class FunctionListView(views.APIView):
         )
 
     def post(self, request):
+        print(request.data)
         serializer = FunctionSerializer(data=request.data)
         # 校验数据
         check_serializer_valid(serializer)
