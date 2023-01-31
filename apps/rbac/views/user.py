@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 
-from ..models import User
+
 from ..models import User, Role, Role_User, User_Function
 from ..serializers.user_serializer import UserListSerializer, UserDetailSerializer
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView

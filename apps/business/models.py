@@ -7,15 +7,16 @@ from apps.rbac.models import User
 class Project(models.Model):
     STATUS_CHOICES = (
         ('s', '暂停中'),
+        ('w', '等待分配'),
         ('r', '进行中'),
         ('f', '已完成'),
         ('w', '待分配'),
     )
     name = models.CharField(max_length=30, verbose_name="项目名")
     desc = models.CharField(max_length=100, verbose_name="项目描述", blank=True, null=True)
-    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='r', null=False,
+    status = models.CharField(verbose_name='Status (*)', max_length=1, choices=STATUS_CHOICES, default='w', null=False,
                               blank=False)
-    phaseNumber = models.IntegerField(default=0,verbose_name="任务阶段数量",)
+    phaseNumber = models.IntegerField(default=1,verbose_name="任务阶段数量")
     members = models.ManyToManyField(User, verbose_name='项目成员', through='Project_User')
     addTime = models.DateTimeField(verbose_name='添加时间', auto_now_add=True)
     REQUIRED_FIELDS: list[str] = ['name']

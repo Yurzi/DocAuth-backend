@@ -1,9 +1,9 @@
+from rest_framework import status
 import datetime
-
-from django.forms import model_to_dict
+from rest_framework.generics import CreateAPIView
+from common.custom_response import CustomResponse
+from common.custom_exception import CustomException
 from django.http.response import JsonResponse
-from django.core import serializers
-from django.shortcuts import render, HttpResponse, redirect
 import json
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
@@ -32,8 +32,21 @@ def newProject(request):
     print(data)
     print(projectName)
     Project.objects.create(desc=projectDesc, name=projectName, status='r', addTime=datetime.datetime.now())
-    print("你好ssss")
+    
     return HttpResponse("成功")
+
+
+class createProjectView(CreateAPIView):
+    def post(self, request):
+        '''创建项目'''
+        data = request.data
+        try:
+            user = User.objects.get(pk=data["user"])
+        except:
+            raise CustomException(status_code=status.HTTP_404_NOT_FOUND, code=404, message="用户不存在")
+        project = Project.objects.create(name=data["name"],desc=data["desc"])
+        Project_User.objects.create(user=user,project=project)
+        return CustomResponse("创建项目成功")
 
 
 # 保存新建的项目
@@ -54,6 +67,8 @@ def saveProject(request):
 
     # 根据id得到当前项目
     project = Project.objects.get(id=projectId)
+    project.status = 'r'
+    project.save(force_update=True)
 
     # initialId = task.id + 1
     # print(initialId)

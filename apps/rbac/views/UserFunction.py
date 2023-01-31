@@ -52,6 +52,28 @@ class W_U_FView(views.APIView):
         if uf.exists():
             uf.delete()
         return CustomResponse(code=200,message='删除成功')
+    #更新角色小灶权限
+    def put(self,request):
+        re_data = request.data
+        uid = re_data['userId']
+        flist = re_data['extraFunctionList']
+        ufobs = User_Function.objects.filter(user_id = uid)
+        if ufobs.exists():
+            ufobs.delete()
+        try:
+            uob = User.objects.get(id=uid)
+        except User.DoesNotExist:
+            return CustomResponse(code=402,message='用户id不存在')
+        for fid in flist:
+            try:
+                fob = Function.objects.get(id=fid['id'])
+            except Function.DoesNotExist:
+                return CustomResponse(code = 402,message='id为'+str(fid['id'])+'的function不存在')
+        print(11111111111)
+        for fid in flist:
+            User_Function.objects.create(user_id = uid,function_id=fid['id'])
+        return CustomResponse(code=200,message='更新成功')
+
 class W_U_FViewAll(views.APIView):
     def get(self,request):
         uId = request.query_params['userId']

@@ -43,7 +43,6 @@ urlpatterns = [
     # Function
     path("/permission", FunctionListView.as_view()),
     path("/permission/status", FunctionDetailView.as_view()),
-
     # Api
     path("/permission/api", ApiListView.as_view()),
     path("/permission/api/status", ApiDetailView.as_view()),

@@ -2,8 +2,7 @@ from rest_framework import views
 from ..models import Role_User, User, Role
 from common.custom_response import CustomResponse
 from ..serializers.RoleSer import Rser
-
-
+from ..views.Role import ZqxRSer
 class wsRUView(views.APIView):
     def put(self, request):
         re_data = request.data
@@ -24,10 +23,10 @@ class wsRUView(views.APIView):
             r_u_obs.delete()
 
         for rid in rids:
-            Role_User.objects.create(role_id=rid, user_id=uid)
-        return CustomResponse(message='更新完毕', code=200, data=None)
-
-    def get(self, request):
+            Role_User.objects.create(role_id = rid,user_id = uid)
+        return CustomResponse(message= '更新完毕',code=200,data=None )
+    #获取某个用户的角色列表
+    def get(self,request):
         re_data = request.query_params
         print(re_data)
         uid = re_data['userid']
@@ -44,9 +43,10 @@ class wsRUView(views.APIView):
         for ru in R_U_obs.values():
             b.append(ru['role_id'])
 
+        
         role_obs = Role.objects.filter(id__in=b)
-
-        rolesser = Rser(instance=role_obs, many=True)
+        rolesser = ZqxRSer(instance=role_obs,many=True)
+        #rolesser = Rser(instance=role_obs, many=True)
         roles = rolesser.data
         for c in roles:
             if c['status'] == 'r':
