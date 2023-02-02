@@ -78,7 +78,6 @@ class Role_FunctionView(views.APIView):
     # 分页获取角色列表
     def get(self, request):
         print(11111)
-
         re_data = request.query_params
         print(re_data)
         print(2222)
